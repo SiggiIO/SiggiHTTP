@@ -608,8 +608,8 @@ public final class HTMLUtils {
 	 * Escape characters for use in javascript code.
 	 *
 	 * @param text text to escape
-	 * @param escapeChar escape character, either &apos; or &quot;
-	 * @param htmlEscape if true, will escape &lt, &gt, and &amp;.
+	 * @param escapeChar escape character, either apostrophe or quote.
+	 * @param htmlEscape if true, will escape html entities.
 	 * @return escaped text
 	 */
 	public static String javascriptStringEscape(String text, char escapeChar, boolean htmlEscape) {
