@@ -888,10 +888,8 @@ final class HTTPHandler {
 	}
 
 	private SimpleDateFormat getSimpleDateFormat() {
-		if (simpleDateFormat == null) {
-			simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
-			simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-		}
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
+		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 		return simpleDateFormat;
 	}
 
@@ -914,9 +912,9 @@ final class HTTPHandler {
 
 	private static byte[] getBytes(String str) {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
-			try (Writer writer = new OutputStreamWriter(os, "UTF-8")) {
-				writer.write(str);
-				writer.flush();
+		try (Writer writer = new OutputStreamWriter(os, "UTF-8")) {
+			writer.write(str);
+			writer.flush();
 			return os.toByteArray();
 		} catch (Exception e) {
 		}
@@ -958,7 +956,6 @@ final class HTTPHandler {
 	private boolean keepAlive = true;
 	private boolean cannotKeepAlive = false;
 	private int keepAliveTime = -1;
-	private SimpleDateFormat simpleDateFormat = null;
 	private String host = null;
 	private String referer = null;
 	private String userAgent = null;
