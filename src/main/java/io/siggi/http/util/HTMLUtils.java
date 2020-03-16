@@ -2,6 +2,8 @@ package io.siggi.http.util;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 /**
  * HTML Utilities
@@ -668,6 +670,19 @@ public final class HTMLUtils {
 		} catch (Exception e) {
 			return string;
 		}
+	}
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="Date Format">
+	/**
+	 * Get the SimpleDateFormat for HTTP.
+	 *
+	 * @return a SimpleDateFormat
+	 */
+	public static SimpleDateFormat getSimpleDateFormat() {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
+		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		return simpleDateFormat;
 	}
 	// </editor-fold>
 }

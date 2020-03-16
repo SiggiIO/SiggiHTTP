@@ -10,6 +10,7 @@ import io.siggi.http.io.SubInputStream;
 import io.siggi.http.registry.HTTPResponderRegistry;
 import io.siggi.http.util.CaseInsensitiveHashMap;
 import io.siggi.http.util.CloudFlare;
+import io.siggi.http.util.HTMLUtils;
 import io.siggi.http.util.Util;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -889,9 +890,7 @@ final class HTTPHandler {
 	}
 
 	public SimpleDateFormat getSimpleDateFormat() {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
-		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-		return simpleDateFormat;
+		return HTMLUtils.getSimpleDateFormat();
 	}
 
 	String formatDate(long date) {
