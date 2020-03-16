@@ -450,28 +450,17 @@ public class HTTPResponse extends OutputStream {
 	public String computeEtag(File file) {
 		try {
 			MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
-			MessageDigest messageDigest2 = MessageDigest.getInstance("MD5");
 			String ap = file.getAbsolutePath();
 			while (ap.endsWith("/")) {
 				ap = ap.substring(0, ap.length() - 1);
 			}
 			byte[] bytes = (ap + Long.toString(file.lastModified())).getBytes();
 			messageDigest.update(bytes);
-			messageDigest2.update(bytes);
 			byte[] digest = messageDigest.digest();
-			byte[] digest2 = messageDigest2.digest();
 			messageDigest.reset();
-			messageDigest2.reset();
 			ByteArrayOutputStream digestStream = new ByteArrayOutputStream();
 			for (int i = 0; i < digest.length; i++) {
 				String digestByte = Integer.toString(digest[i] & 0xff, 16);
-				while (digestByte.length() < 2) {
-					digestByte = "0" + digestByte;
-				}
-				digestStream.write(digestByte.getBytes());
-			}
-			for (int i = 0; i < digest2.length; i++) {
-				String digestByte = Integer.toString(digest2[i] & 0xff, 16);
 				while (digestByte.length() < 2) {
 					digestByte = "0" + digestByte;
 				}
