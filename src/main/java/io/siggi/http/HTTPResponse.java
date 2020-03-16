@@ -27,6 +27,7 @@ public class HTTPResponse extends OutputStream {
 	 * Sets the content length and disables chunked transfer encoding. If you
 	 * use -1, then content length will be unset, and chunked transfer encoding
 	 * is enabled.
+	 *
 	 * @param contentLength the content length
 	 */
 	public void contentLength(long contentLength) {
@@ -50,7 +51,8 @@ public class HTTPResponse extends OutputStream {
 	 * Sets the content length and disables chunked transfer encoding. If you
 	 * use -1, then content length will be unset, and chunked transfer encoding
 	 * is enabled.
-	 * @param contentLength 
+	 *
+	 * @param contentLength
 	 */
 	public void contentLength(int contentLength) {
 		if (request.handler.wrote) {
@@ -151,6 +153,16 @@ public class HTTPResponse extends OutputStream {
 				}
 			}
 		}
+		List<String> ifModifiedSinceH = request.headers.get("If-Modified-Since");
+		if (ifModifiedSinceH != null && !ifModifiedSinceH.isEmpty()) {
+			long check = parseDate(ifModifiedSinceH.get(0));
+			check -= check % 1000;
+			long lastMod = file.lastModified();
+			lastMod -= lastMod % 1000;
+			if (lastMod <= check) {
+				sendFile = false;
+			}
+		}
 		if (sendFile) {
 			try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
 				long fileLength = raf.length();
@@ -167,7 +179,7 @@ public class HTTPResponse extends OutputStream {
 					raf.seek(partialStart);
 					amountToWrite = partialEnd - partialStart + 1;
 					setHeader("206 Partial Content");
-					setHeader("Content-Range","bytes " + partialStart + "-" + partialEnd + "/" + fileLength);
+					setHeader("Content-Range", "bytes " + partialStart + "-" + partialEnd + "/" + fileLength);
 				} else {
 					setHeader("200 OK");
 				}
@@ -180,6 +192,7 @@ public class HTTPResponse extends OutputStream {
 				if (eTag != null) {
 					setHeader("ETag", "\"" + eTag + "\"");
 				}
+				setHeader("Last-Modified", formatDate(file.lastModified()));
 				request.handler.disableBuffer();
 				sendHeaders();
 				int c = 0;
@@ -264,7 +277,8 @@ public class HTTPResponse extends OutputStream {
 	}
 
 	/**
-	 * Formats a date for use with Set-Cookie or use in an HTTP header. The time will be returned in GMT.
+	 * Formats a date for use with Set-Cookie or use in an HTTP header. The time
+	 * will be returned in GMT.
 	 */
 	public String formatDate(long date) {
 		return request.handler.formatDate(date);
@@ -445,12 +459,14 @@ public class HTTPResponse extends OutputStream {
 	public void doNotCache() {
 		request.handler.doNotCache();
 	}
-	
+
 	/**
-	 * Tell the client to cache this resource for the specified number of seconds.
+	 * Tell the client to cache this resource for the specified number of
+	 * seconds.
+	 *
 	 * @param maxAge number of seconds
 	 */
-	public void cache(long maxAge){
+	public void cache(long maxAge) {
 		request.handler.cache(maxAge);
 	}
 
