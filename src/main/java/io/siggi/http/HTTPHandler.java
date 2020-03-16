@@ -30,6 +30,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.security.MessageDigest;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -895,6 +896,14 @@ final class HTTPHandler {
 
 	String formatDate(long date) {
 		return getSimpleDateFormat().format(new Date(date));
+	}
+
+	long parseDate(String date) {
+		try {
+			return getSimpleDateFormat().parse(date).getTime();
+		} catch (ParseException ex) {
+			return -1L;
+		}
 	}
 
 	private static String fixString(String s) {

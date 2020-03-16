@@ -264,10 +264,17 @@ public class HTTPResponse extends OutputStream {
 	}
 
 	/**
-	 * Formats a date for use with Set-Cookie. The time will be returned in GMT.
+	 * Formats a date for use with Set-Cookie or use in an HTTP header. The time will be returned in GMT.
 	 */
 	public String formatDate(long date) {
 		return request.handler.formatDate(date);
+	}
+
+	/**
+	 * Parses an HTTP date.
+	 */
+	public long parseDate(String date) {
+		return request.handler.parseDate(date);
 	}
 
 	/**
