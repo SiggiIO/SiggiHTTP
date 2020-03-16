@@ -887,7 +887,7 @@ final class HTTPHandler {
 		}
 	}
 
-	private SimpleDateFormat getSimpleDateFormat() {
+	public SimpleDateFormat getSimpleDateFormat() {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
 		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 		return simpleDateFormat;
