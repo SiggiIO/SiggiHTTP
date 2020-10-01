@@ -3,6 +3,7 @@ package io.siggi.http;
 /**
  * Page generators should implement this interface
  */
+@FunctionalInterface
 public interface HTTPResponder {
 
 	/**
@@ -22,5 +23,6 @@ public interface HTTPResponder {
 	 * @param request the request to handle
 	 * @throws Exception if something goes wrong
 	 */
-	public void respond404(HTTPRequest request) throws Exception;
+	default public void respond404(HTTPRequest request) throws Exception {
+	};
 }
