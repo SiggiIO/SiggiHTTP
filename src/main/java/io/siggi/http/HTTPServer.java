@@ -1,6 +1,7 @@
 package io.siggi.http;
 
 import io.siggi.http.defaultresponders.DefaultResponder;
+import io.siggi.http.iphelper.IP;
 import io.siggi.http.registry.HTTPResponderRegistry;
 import io.siggi.http.session.Sessions;
 import java.io.IOException;
@@ -10,8 +11,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class HTTPServer {
 
@@ -416,27 +420,42 @@ public final class HTTPServer {
 		return "application/x-octet-stream";
 	}
 
-	private final ArrayList<String> trustedIPs = new ArrayList<>();
+	private final Set<IP> trustedIPs = new HashSet<>();
+	private final ReentrantReadWriteLock trustedIPLock = new ReentrantReadWriteLock();
+	private final ReentrantReadWriteLock.ReadLock trustedIPRead = trustedIPLock.readLock();
+	private final ReentrantReadWriteLock.WriteLock trustedIPWrite = trustedIPLock.writeLock();
 
 	public boolean isIPTrusted(String ip) {
-		synchronized (trustedIPs) {
-			return trustedIPs.contains(ip);
+		trustedIPRead.lock();
+		try {
+			IP ipAddr = IP.getIP(ip);
+			do {
+				if (trustedIPs.contains(ipAddr)) {
+					return true;
+				}
+				ipAddr = IP.getIP(ipAddr.getFirstIP().toString() + "/" + (ipAddr.getPrefixLength() - 1));
+			} while (ipAddr.getPrefixLength() > 0);
+			return false;
+		} finally {
+			trustedIPRead.unlock();
 		}
 	}
 
 	public void trustIP(String ip) {
-		synchronized (trustedIPs) {
-			if (!trustedIPs.contains(ip)) {
-				trustedIPs.add(ip);
-			}
+		trustedIPWrite.lock();
+		try {
+			trustedIPs.add(IP.getIP(ip));
+		} finally {
+			trustedIPWrite.unlock();
 		}
 	}
 
 	public void untrustIP(String ip) {
-		synchronized (trustedIPs) {
-			if (trustedIPs.contains(ip)) {
-				trustedIPs.remove(ip);
-			}
+		trustedIPWrite.lock();
+		try {
+			trustedIPs.remove(IP.getIP(ip));
+		} finally {
+			trustedIPWrite.unlock();
 		}
 	}
 
