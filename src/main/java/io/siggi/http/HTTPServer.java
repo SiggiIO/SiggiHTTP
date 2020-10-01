@@ -11,18 +11,48 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public final class HTTPServer {
 
-	private static final String serverVersion = "1.2.0"; // INSERT SERVER VERSION HERE
+	private static final String version;
+	private static final boolean snapshot;
+
+	static {
+		String ver = "UNKNOWN";
+		boolean snap = false;
+		try {
+			InputStream pomProps = HTTPServer.class.getResourceAsStream("/META-INF/maven/io.siggi/SiggiHTTP/pom.properties");
+			Properties props = new Properties();
+			props.load(pomProps);
+			ver = props.getProperty("version");
+		} catch (Exception e) {
+			// unable to determine version! :o
+		}
+		if (ver.endsWith("-SNAPSHOT")) {
+			ver = ver.substring(0, ver.length() - 9);
+			snap = true;
+		}
+		version = ver;
+		snapshot = snap;
+	}
 
 	/**
-	 * Returns the server version
+	 * Get the SiggiHTTP version.
 	 *
 	 * @return server version
 	 */
 	public static String getVersion() {
-		return serverVersion;
+		return version;
+	}
+
+	/**
+	 * See if this is a snapshot version of SiggiHTTP.
+	 *
+	 * @return
+	 */
+	public static boolean isSnapshot() {
+		return snapshot;
 	}
 
 	HTTPServer(Sessions sessions) {
