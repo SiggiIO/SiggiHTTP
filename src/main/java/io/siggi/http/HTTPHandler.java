@@ -120,7 +120,7 @@ final class HTTPHandler {
 				throw new IOException("Too much data written!");
 			}
 		}
-		writtenBodyLength += outputContentLength;
+		writtenBodyLength += amount;
 	}
 
 	private void finishBody() throws IOException {
@@ -862,7 +862,7 @@ final class HTTPHandler {
 			List<String> list = entry.getValue();
 			for (String str : list) {
 				Util.writeCRLF(header + ": " + str, baos);
-				if (str.equalsIgnoreCase("Content-Length")) {
+				if (header.equalsIgnoreCase("Content-Length")) {
 					try {
 						outputContentLength = Long.parseLong(str);
 					} catch (Exception e) {
