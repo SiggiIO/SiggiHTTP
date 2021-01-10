@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -371,11 +371,7 @@ public class HTTPResponse extends OutputStream {
 	 * Formats the string as UTF-8 and returns it as a byte array.
 	 */
 	public byte[] getBytes(String str) {
-		try {
-			return str.getBytes("UTF-8");
-		} catch (UnsupportedEncodingException ex) {
-			throw new RuntimeException("This should never happen", ex);
-		}
+			return str.getBytes(StandardCharsets.UTF_8);
 	}
 
 	/**
