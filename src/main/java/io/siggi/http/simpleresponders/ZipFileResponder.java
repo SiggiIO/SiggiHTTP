@@ -153,6 +153,15 @@ public class ZipFileResponder implements HTTPResponder {
 		}
 	}
 
+	public String getRealName(String file) {
+		Properties properties = getProperties();
+		String rename = properties.getProperty("rename." + file);
+		if (rename != null) {
+			file = rename;
+		}
+		return file;
+	}
+
 	public InputStream getFileStream(String file) throws IOException {
 		ZipArchive zipArchive = updateAndGet(() -> archive);
 		Properties properties = getProperties();
