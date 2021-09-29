@@ -52,20 +52,22 @@ public class ZipFileResponder implements HTTPResponder {
 			return;
 		}
 		String acceptedEncodingsString = request.getHeader("Accept-Encoding");
-		String[] acceptedEncodings = acceptedEncodingsString.replace(" ", "").split(",");
 		boolean allowGzip = false;
 		boolean allowBrotli = false;
-		for (String acceptedEncoding : acceptedEncodings) {
-			if (acceptedEncoding.contains(";")) {
-				acceptedEncoding = acceptedEncoding.substring(0, acceptedEncoding.indexOf(";")).trim();
-			}
-			switch (acceptedEncoding.toLowerCase()) {
-				case "br":
-					allowBrotli = true;
-					break;
-				case "gzip":
-					allowGzip = true;
-					break;
+		if (acceptedEncodingsString != null) {
+			String[] acceptedEncodings = acceptedEncodingsString.replace(" ", "").split(",");
+			for (String acceptedEncoding : acceptedEncodings) {
+				if (acceptedEncoding.contains(";")) {
+					acceptedEncoding = acceptedEncoding.substring(0, acceptedEncoding.indexOf(";")).trim();
+				}
+				switch (acceptedEncoding.toLowerCase()) {
+					case "br":
+						allowBrotli = true;
+						break;
+					case "gzip":
+						allowGzip = true;
+						break;
+				}
 			}
 		}
 		ZipArchive zipArchive = ZipArchive.from(zipFile);
