@@ -156,7 +156,7 @@ public class ZipFileResponder implements HTTPResponder {
 	public InputStream getFileStream(String file) throws IOException {
 		ZipArchive zipArchive = updateAndGet(() -> archive);
 		Properties properties = getProperties();
-		String rename = properties.getProperty("rename:" + file);
+		String rename = properties.getProperty("rename." + file);
 		if (rename != null) {
 			file = rename;
 		}
@@ -220,7 +220,7 @@ public class ZipFileResponder implements HTTPResponder {
 
 	private static String getOption(String file, Properties props, String option) {
 		for (String parent : getParents(file)) {
-			String value = props.getProperty("option:" + parent + ":" + option);
+			String value = props.getProperty("option." + parent + "." + option);
 			if (value != null) return value;
 		}
 		return props.getProperty(option);
