@@ -208,6 +208,7 @@ public class ZipFileResponder implements HTTPResponder {
 
 	private static List<String> getParents(String file) {
 		List<String> parents = new ArrayList<>();
+		parents.add(file);
 		do {
 			int slashPos = file.lastIndexOf("/");
 			if (slashPos == -1) slashPos = 0;
