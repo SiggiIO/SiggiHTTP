@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -70,12 +72,22 @@ public class ZipFileResponder implements HTTPResponder {
 		Properties properties = getProperties();
 		long maxAge = 86400L;
 		try {
-			maxAge = Long.parseLong(properties.getProperty("max-age"));
+			maxAge = Long.parseLong(getOption(requestedPath, properties, "max-age"));
+		} catch (Exception e) {
+		}
+		boolean autoRedirect = true;
+		try {
+			String autoRedirectString = getOption(requestedPath, properties, "auto-redirect");
+			if (autoRedirectString != null && (autoRedirectString.equals("0") || autoRedirectString.equals("no") || autoRedirectString.equals("false"))) {
+				autoRedirect = false;
+			}
 		} catch (Exception e) {
 		}
 		String rename = properties.getProperty("rename:" + requestedPath);
 		if (rename != null) {
-			request.response.redirect(mountPath + rename);
+			if (autoRedirect) {
+				request.response.redirect(mountPath + rename);
+			}
 			return;
 		}
 		String extension = getFileExtension(requestedPath);
@@ -192,5 +204,24 @@ public class ZipFileResponder implements HTTPResponder {
 		Properties properties = new Properties();
 		properties.load(zipArchive.getEntry("info.txt").getInputStream());
 		return properties;
+	}
+
+	private static List<String> getParents(String file) {
+		List<String> parents = new ArrayList<>();
+		do {
+			int slashPos = file.lastIndexOf("/");
+			if (slashPos == -1) slashPos = 0;
+			file = file.substring(0, slashPos);
+			parents.add(file);
+		} while (!file.equals(""));
+		return parents;
+	}
+
+	private static String getOption(String file, Properties props, String option) {
+		for (String parent : getParents(file)) {
+			String value = props.getProperty("option:" + parent + ":" + option);
+			if (value != null) return value;
+		}
+		return props.getProperty(option);
 	}
 }
