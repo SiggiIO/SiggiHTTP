@@ -14,6 +14,8 @@ import java.util.Properties;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
+import static io.siggi.http.util.Util.getFileExtension;
+
 public class ZipFileResponder implements HTTPResponder {
 
 	private static final byte[] gzipHeader = new byte[]{(byte) 0x1f, (byte) 0x8b, (byte) 0x08, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x02, (byte) 0x03};
@@ -76,21 +78,26 @@ public class ZipFileResponder implements HTTPResponder {
 			request.response.redirect(mountPath + rename);
 			return;
 		}
+		String extension = getFileExtension(requestedPath);
+		String contentType = properties.getProperty("mime:" + extension);
+		if (contentType == null) {
+			contentType = request.getMimeType(extension);
+		}
 		String sha1 = properties.getProperty("sha1:" + requestedPath);
 		ZipArchiveEntry brotliEntry = zipArchive.getEntry(requestedPath + ".br");
 		ZipArchiveEntry uncompressedEntry = zipArchive.getEntry(requestedPath);
 		if (allowBrotli && brotliEntry != null && !brotliEntry.isDirectory()) {
-			respond(request, zipArchive, brotliEntry, false, "br", maxAge, sha1);
+			respond(request, contentType, zipArchive, brotliEntry, false, "br", maxAge, sha1);
 		} else if (uncompressedEntry != null && !uncompressedEntry.isDirectory()) {
 			if (allowGzip && uncompressedEntry.getCompressionMethod() == 8) {
-				respond(request, zipArchive, uncompressedEntry, true, null, maxAge, sha1);
+				respond(request, contentType, zipArchive, uncompressedEntry, true, null, maxAge, sha1);
 			} else {
-				respond(request, zipArchive, uncompressedEntry, false, null, maxAge, sha1);
+				respond(request, contentType, zipArchive, uncompressedEntry, false, null, maxAge, sha1);
 			}
 		}
 	}
 
-	private void respond(HTTPRequest request, ZipArchive zipArchive, ZipArchiveEntry entry, boolean convertDeflateToGzip, String encoding, long maxAge, String fileSha) throws Exception {
+	private void respond(HTTPRequest request, String contentType, ZipArchive zipArchive, ZipArchiveEntry entry, boolean convertDeflateToGzip, String encoding, long maxAge, String fileSha) throws Exception {
 		if (fileSha != null) {
 			String eTag = "\"" + fileSha + (encoding == null ? "" : ("-" + encoding)) + "\"";
 			String ifNoneMatch = request.getHeader("If-None-Match");
@@ -100,6 +107,9 @@ public class ZipFileResponder implements HTTPResponder {
 			} else {
 				request.response.setHeader("ETag", eTag);
 			}
+		}
+		if (contentType != null) {
+			request.response.setHeader("Content-Type", contentType);
 		}
 		if (encoding != null) {
 			request.response.setHeader("Content-Encoding", encoding);

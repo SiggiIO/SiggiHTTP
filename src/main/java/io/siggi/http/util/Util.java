@@ -370,4 +370,13 @@ public class Util {
 		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 		return simpleDateFormat.format(new Date(date));
 	}
+
+	public static String getFileExtension(String file) {
+		int slashPos = file.lastIndexOf("/");
+		int dotPos = file.lastIndexOf(".");
+		if (dotPos == -1 || dotPos < slashPos) {
+			return "";
+		}
+		return file.substring(dotPos + 1);
+	}
 }
