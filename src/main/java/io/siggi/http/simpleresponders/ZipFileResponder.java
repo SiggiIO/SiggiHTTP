@@ -2,8 +2,9 @@ package io.siggi.http.simpleresponders;
 
 import io.siggi.http.HTTPRequest;
 import io.siggi.http.HTTPResponder;
-import io.siggi.http.io.InputStreamThatClosesOtherResources;
 import io.siggi.http.util.Util;
+import io.siggi.ziplib.ZipArchive;
+import io.siggi.ziplib.ZipArchiveEntry;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,17 +12,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.function.Supplier;
 
 public class ZipFileResponder implements HTTPResponder {
 
 	private final String mountPath;
 	private final File zipFile;
-	private final ReentrantReadWriteLock propsLock = new ReentrantReadWriteLock();
-	private final ReentrantReadWriteLock.ReadLock propsReadLock = propsLock.readLock();
-	private final ReentrantReadWriteLock.WriteLock propsWriteLock = propsLock.writeLock();
+	private final ReentrantReadWriteLock archiveLock = new ReentrantReadWriteLock();
+	private final ReentrantReadWriteLock.ReadLock archiveReadLock = archiveLock.readLock();
+	private final ReentrantReadWriteLock.WriteLock archiveWriteLock = archiveLock.writeLock();
 	private long lastModified = 0L;
+	private ZipArchive archive = null;
 	private Properties props = null;
 
 	public ZipFileResponder(String mountPath, File zipFile) {
@@ -61,33 +62,35 @@ public class ZipFileResponder implements HTTPResponder {
 					break;
 			}
 		}
-		try (ZipFile zf = new ZipFile(zipFile)) {
-			Properties properties = getProperties();
-			long maxAge = 86400L;
-			try {
-				maxAge = Long.parseLong(properties.getProperty("max-age"));
-			} catch (Exception e) {
-			}
-			String rename = properties.getProperty("rename:" + requestedPath);
-			if (rename != null) {
-				request.response.redirect(mountPath + rename);
-				return;
-			}
-			String sha1 = properties.getProperty("sha1:" + requestedPath);
-			ZipEntry brotliEntry = zf.getEntry(requestedPath + ".br");
-			ZipEntry gzipEntry = zf.getEntry(requestedPath + ".gz");
-			ZipEntry uncompressedEntry = zf.getEntry(requestedPath);
-			if (allowBrotli && brotliEntry != null && !brotliEntry.isDirectory()) {
-				respond(request, zf, brotliEntry, "br", maxAge, sha1);
-			} else if (allowGzip && gzipEntry != null && !gzipEntry.isDirectory()) {
-				respond(request, zf, gzipEntry, "gzip", maxAge, sha1);
-			} else if (uncompressedEntry != null && !uncompressedEntry.isDirectory()) {
-				respond(request, zf, uncompressedEntry, null, maxAge, sha1);
+		ZipArchive zipArchive = ZipArchive.from(zipFile);
+		Properties properties = getProperties();
+		long maxAge = 86400L;
+		try {
+			maxAge = Long.parseLong(properties.getProperty("max-age"));
+		} catch (Exception e) {
+		}
+		String rename = properties.getProperty("rename:" + requestedPath);
+		if (rename != null) {
+			request.response.redirect(mountPath + rename);
+			return;
+		}
+		String sha1 = properties.getProperty("sha1:" + requestedPath);
+		ZipArchiveEntry brotliEntry = zipArchive.getEntry(requestedPath + ".br");
+		ZipArchiveEntry uncompressedEntry = zipArchive.getEntry(requestedPath);
+		if (allowBrotli && brotliEntry != null && !brotliEntry.isDirectory()) {
+			respond(request, zipArchive, brotliEntry, false, "br", maxAge, sha1);
+		} else if (allowGzip && uncompressedEntry != null && !uncompressedEntry.isDirectory()) {
+			respond(request, zipArchive, uncompressedEntry, true, "gzip", maxAge, sha1);
+		} else if (uncompressedEntry != null && !uncompressedEntry.isDirectory()) {
+			if (allowGzip && uncompressedEntry.getCompressionMethod() == 8) {
+				respond(request, zipArchive, uncompressedEntry, true, null, maxAge, sha1);
+			} else {
+				respond(request, zipArchive, uncompressedEntry, false, null, maxAge, sha1);
 			}
 		}
 	}
 
-	private void respond(HTTPRequest request, ZipFile zf, ZipEntry entry, String encoding, long maxAge, String fileSha) throws Exception {
+	private void respond(HTTPRequest request, ZipArchive zipArchive, ZipArchiveEntry entry, boolean convertDeflateToGzip, String encoding, long maxAge, String fileSha) throws Exception {
 		if (fileSha != null) {
 			String eTag = "\"" + fileSha + (encoding == null ? "" : ("-" + encoding)) + "\"";
 			String ifNoneMatch = request.getHeader("If-None-Match");
@@ -101,71 +104,90 @@ public class ZipFileResponder implements HTTPResponder {
 		if (encoding != null) {
 			request.response.setHeader("Content-Encoding", encoding);
 		}
-		request.response.contentLength(entry.getSize());
+		request.response.contentLength(convertDeflateToGzip ? (entry.getCompressedLength() + 18L) : entry.getUncompressedLength());
 		if (maxAge > 0L) {
 			request.response.cache(maxAge);
 			request.response.setHeader("Vary", "Accept-Encoding");
 		} else {
 			request.response.doNotCache();
 		}
-		Util.copy(zf.getInputStream(entry), request.response);
+		if (convertDeflateToGzip) {
+			request.response.write(0x1f);
+			request.response.write(0x8b);
+			request.response.write(0x08);
+			request.response.write(0x00);
+			request.response.write(0x00);
+			request.response.write(0x00);
+			request.response.write(0x00);
+			request.response.write(0x00);
+			request.response.write(0x02);
+			request.response.write(0x03);
+		}
+		Util.copy(entry.getInputStream(convertDeflateToGzip), request.response);
+		if (convertDeflateToGzip) {
+			int crc32 = entry.getCrc();
+			request.response.write(crc32 & 0xff);
+			request.response.write((crc32 >> 8) & 0xff);
+			request.response.write((crc32 >> 16) & 0xff);
+			request.response.write((crc32 >> 24) & 0xff);
+			int uncompressedSize = (int) entry.getUncompressedLength();
+			request.response.write(uncompressedSize & 0xff);
+			request.response.write((uncompressedSize >> 8) & 0xff);
+			request.response.write((uncompressedSize >> 16) & 0xff);
+			request.response.write((uncompressedSize >> 24) & 0xff);
+		}
 	}
 
 	public InputStream getFileStream(String file) throws IOException {
-		ZipFile zf = null;
+		ZipArchive zipArchive = updateAndGet(() -> archive);
+		Properties properties = getProperties();
+		String rename = properties.getProperty("rename:" + file);
+		if (rename != null) {
+			file = rename;
+		}
+		ZipArchiveEntry entry = zipArchive.getEntry(file);
+		if (entry == null) {
+			throw new FileNotFoundException(zipFile.getPath() + ":" + file);
+		}
+		return entry.getInputStream();
+	}
+
+	private <T> T updateAndGet(Supplier<T> getter) {
+		archiveReadLock.lock();
 		try {
-			zf = new ZipFile(zipFile);
-			Properties properties = getProperties();
-			String rename = properties.getProperty("rename:" + file);
-			if (rename != null) {
-				file = rename;
+			long lm = zipFile.lastModified();
+			if (lastModified == lm) {
+				return getter.get();
 			}
-			ZipEntry entry = zf.getEntry(file);
-			if (entry == null) {
-				throw new FileNotFoundException(zipFile.getPath() + ":" + file);
+		} finally {
+			archiveReadLock.unlock();
+		}
+		archiveWriteLock.lock();
+		try {
+			long lm = zipFile.lastModified();
+			if (lastModified == lm) {
+				return getter.get();
 			}
-			return new InputStreamThatClosesOtherResources(zf.getInputStream(entry), zf);
-		} catch (IOException ioe) {
-			if (zf != null) {
-				try {
-					zf.close();
-				} catch (IOException ioe2) {
-				}
+			ZipArchive zipArchive = ZipArchive.from(zipFile);
+			try {
+				props = getProperties(zipArchive);
+				archive = zipArchive;
+				lastModified = lm;
+			} catch (Exception e) {
 			}
-			throw ioe;
+			return getter.get();
+		} finally {
+			archiveWriteLock.unlock();
 		}
 	}
 
 	public Properties getProperties() {
-		propsReadLock.lock();
-		try {
-			long lm = zipFile.lastModified();
-			if (props != null && lastModified == lm) {
-				return props;
-			}
-		} finally {
-			propsReadLock.unlock();
-		}
-		propsWriteLock.lock();
-		try {
-			long lm = zipFile.lastModified();
-			if (props != null && lastModified == lm) {
-				return props;
-			}
-			try (ZipFile zf = new ZipFile(zipFile)) {
-				props = getProperties(zf);
-				lastModified = lm;
-			} catch (IOException e) {
-			}
-			return props;
-		} finally {
-			propsWriteLock.unlock();
-		}
+		return updateAndGet(() -> props);
 	}
 
-	private Properties getProperties(ZipFile zf) throws IOException {
+	private Properties getProperties(ZipArchive zipArchive) throws IOException {
 		Properties properties = new Properties();
-		properties.load(zf.getInputStream(zf.getEntry("info.txt")));
+		properties.load(zipArchive.getEntry("info.txt").getInputStream());
 		return properties;
 	}
 }
