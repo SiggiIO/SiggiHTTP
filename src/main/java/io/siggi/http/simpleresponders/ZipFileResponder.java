@@ -113,7 +113,7 @@ public class ZipFileResponder implements HTTPResponder {
 		if (fileSha != null) {
 			String eTag = "\"" + fileSha + (encoding == null ? "" : ("-" + encoding)) + "\"";
 			String ifNoneMatch = request.getHeader("If-None-Match");
-			if (ifNoneMatch.equals(eTag)) {
+			if (ifNoneMatch != null && ifNoneMatch.equals(eTag)) {
 				request.response.setHeader("304 Not Modified");
 				request.response.sendHeaders();
 			} else {
