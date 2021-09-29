@@ -81,8 +81,6 @@ public class ZipFileResponder implements HTTPResponder {
 		ZipArchiveEntry uncompressedEntry = zipArchive.getEntry(requestedPath);
 		if (allowBrotli && brotliEntry != null && !brotliEntry.isDirectory()) {
 			respond(request, zipArchive, brotliEntry, false, "br", maxAge, sha1);
-		} else if (allowGzip && uncompressedEntry != null && !uncompressedEntry.isDirectory()) {
-			respond(request, zipArchive, uncompressedEntry, true, "gzip", maxAge, sha1);
 		} else if (uncompressedEntry != null && !uncompressedEntry.isDirectory()) {
 			if (allowGzip && uncompressedEntry.getCompressionMethod() == 8) {
 				respond(request, zipArchive, uncompressedEntry, true, null, maxAge, sha1);
