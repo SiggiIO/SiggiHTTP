@@ -110,12 +110,19 @@ public class ZipFileResponder implements HTTPResponder {
 	}
 
 	private void respond(HTTPRequest request, String contentType, ZipArchive zipArchive, ZipArchiveEntry entry, boolean convertDeflateToGzip, String encoding, long maxAge, String fileSha) throws Exception {
+		if (maxAge > 0L) {
+			request.response.cache(maxAge);
+		} else {
+			request.response.doNotCache();
+		}
+		request.response.setHeader("Vary", "Accept-Encoding");
 		if (fileSha != null) {
 			String eTag = "\"" + fileSha + (encoding == null ? "" : ("-" + encoding)) + "\"";
 			String ifNoneMatch = request.getHeader("If-None-Match");
 			if (ifNoneMatch != null && ifNoneMatch.equals(eTag)) {
 				request.response.setHeader("304 Not Modified");
 				request.response.sendHeaders();
+				return;
 			} else {
 				request.response.setHeader("ETag", eTag);
 			}
@@ -127,12 +134,6 @@ public class ZipFileResponder implements HTTPResponder {
 			request.response.setHeader("Content-Encoding", encoding);
 		}
 		request.response.contentLength(convertDeflateToGzip ? (entry.getCompressedLength() + 18L) : entry.getUncompressedLength());
-		if (maxAge > 0L) {
-			request.response.cache(maxAge);
-			request.response.setHeader("Vary", "Accept-Encoding");
-		} else {
-			request.response.doNotCache();
-		}
 		if (convertDeflateToGzip) {
 			request.response.write(gzipHeader);
 		}
