@@ -83,7 +83,7 @@ public class ZipFileResponder implements HTTPResponder {
 			}
 		} catch (Exception e) {
 		}
-		String rename = properties.getProperty("rename:" + requestedPath);
+		String rename = properties.getProperty("rename." + requestedPath);
 		if (rename != null) {
 			if (autoRedirect) {
 				request.response.redirect(mountPath + rename);
@@ -91,11 +91,11 @@ public class ZipFileResponder implements HTTPResponder {
 			return;
 		}
 		String extension = getFileExtension(requestedPath);
-		String contentType = properties.getProperty("mime:" + extension);
+		String contentType = properties.getProperty("mime." + extension);
 		if (contentType == null) {
 			contentType = request.getMimeType(extension);
 		}
-		String sha1 = properties.getProperty("sha1:" + requestedPath);
+		String sha1 = properties.getProperty("sha1." + requestedPath);
 		ZipArchiveEntry brotliEntry = zipArchive.getEntry(requestedPath + ".br");
 		ZipArchiveEntry uncompressedEntry = zipArchive.getEntry(requestedPath);
 		if (allowBrotli && brotliEntry != null && !brotliEntry.isDirectory()) {
