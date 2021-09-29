@@ -134,6 +134,7 @@ public class ZipFileResponder implements HTTPResponder {
 			request.response.setHeader("Content-Encoding", encoding);
 		}
 		request.response.contentLength(convertDeflateToGzip ? (entry.getCompressedLength() + 18L) : entry.getUncompressedLength());
+		request.response.sendHeaders(); // force headers to be sent in case nothing gets written after this point (for example, a zero byte empty file)
 		if (convertDeflateToGzip) {
 			request.response.write(gzipHeader);
 		}
