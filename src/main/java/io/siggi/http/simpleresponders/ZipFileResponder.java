@@ -16,6 +16,8 @@ import java.util.function.Supplier;
 
 public class ZipFileResponder implements HTTPResponder {
 
+	private static final byte[] gzipHeader = new byte[]{(byte) 0x1f, (byte) 0x8b, (byte) 0x08, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x02, (byte) 0x03};
+
 	private final String mountPath;
 	private final File zipFile;
 	private final ReentrantReadWriteLock archiveLock = new ReentrantReadWriteLock();
@@ -112,29 +114,22 @@ public class ZipFileResponder implements HTTPResponder {
 			request.response.doNotCache();
 		}
 		if (convertDeflateToGzip) {
-			request.response.write(0x1f);
-			request.response.write(0x8b);
-			request.response.write(0x08);
-			request.response.write(0x00);
-			request.response.write(0x00);
-			request.response.write(0x00);
-			request.response.write(0x00);
-			request.response.write(0x00);
-			request.response.write(0x02);
-			request.response.write(0x03);
+			request.response.write(gzipHeader);
 		}
 		Util.copy(entry.getInputStream(convertDeflateToGzip), request.response);
 		if (convertDeflateToGzip) {
+			byte[] gzipFooter = new byte[8];
 			int crc32 = entry.getCrc();
-			request.response.write(crc32 & 0xff);
-			request.response.write((crc32 >> 8) & 0xff);
-			request.response.write((crc32 >> 16) & 0xff);
-			request.response.write((crc32 >> 24) & 0xff);
+			gzipFooter[0] = (byte) (crc32 & 0xff);
+			gzipFooter[1] = (byte) ((crc32 >> 8) & 0xff);
+			gzipFooter[2] = (byte) ((crc32 >> 16) & 0xff);
+			gzipFooter[3] = (byte) ((crc32 >> 24) & 0xff);
 			int uncompressedSize = (int) entry.getUncompressedLength();
-			request.response.write(uncompressedSize & 0xff);
-			request.response.write((uncompressedSize >> 8) & 0xff);
-			request.response.write((uncompressedSize >> 16) & 0xff);
-			request.response.write((uncompressedSize >> 24) & 0xff);
+			gzipFooter[4] = (byte) (uncompressedSize & 0xff);
+			gzipFooter[5] = (byte) ((uncompressedSize >> 8) & 0xff);
+			gzipFooter[6] = (byte) ((uncompressedSize >> 16) & 0xff);
+			gzipFooter[7] = (byte) ((uncompressedSize >> 24) & 0xff);
+			request.response.write(gzipFooter);
 		}
 	}
 
