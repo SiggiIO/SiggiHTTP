@@ -163,6 +163,9 @@ public class HTTPResponse extends OutputStream {
 				sendFile = false;
 			}
 		}
+		if (eTag != null) {
+			setHeader("ETag", "\"" + eTag + "\"");
+		}
 		if (sendFile) {
 			try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
 				long fileLength = raf.length();
@@ -188,9 +191,6 @@ public class HTTPResponse extends OutputStream {
 					setHeader("Content-Type", request.getMimeType(extension));
 				} else {
 					setHeader("Content-Type", contentType);
-				}
-				if (eTag != null) {
-					setHeader("ETag", "\"" + eTag + "\"");
 				}
 				setHeader("Last-Modified", formatDate(file.lastModified()));
 				request.handler.disableBuffer();

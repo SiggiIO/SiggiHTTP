@@ -120,13 +120,12 @@ public class ZipFileResponder implements HTTPResponder {
 		request.response.setHeader("Vary", "Accept-Encoding");
 		if (fileSha != null) {
 			String eTag = "\"" + fileSha + (encoding == null ? "" : ("-" + encoding)) + "\"";
+			request.response.setHeader("ETag", eTag);
 			String ifNoneMatch = request.getHeader("If-None-Match");
 			if (ifNoneMatch != null && ifNoneMatch.equals(eTag)) {
 				request.response.setHeader("304 Not Modified");
 				request.response.sendHeaders();
 				return;
-			} else {
-				request.response.setHeader("ETag", eTag);
 			}
 		}
 		if (contentType != null) {
