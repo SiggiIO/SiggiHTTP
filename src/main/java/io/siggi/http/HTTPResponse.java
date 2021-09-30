@@ -304,7 +304,8 @@ public class HTTPResponse extends OutputStream {
 	 */
 	@Override
 	public void flush() throws IOException {
-		request.handler.contentOutStream.flush();
+		if (request.handler.contentOutStream != null)
+			request.handler.contentOutStream.flush();
 	}
 
 	/**
