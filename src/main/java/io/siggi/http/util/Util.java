@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -378,5 +379,15 @@ public class Util {
 			return "";
 		}
 		return file.substring(dotPos + 1);
+	}
+
+	private static final char[] randomDataCharset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
+	public static String randomChars(int length) {
+		SecureRandom sr = new SecureRandom();
+		char[] result = new char[length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = randomDataCharset[sr.nextInt(length)];
+		}
+		return new String(result);
 	}
 }
