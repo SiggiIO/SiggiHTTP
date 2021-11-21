@@ -103,15 +103,17 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 							writer.write("<tr>\n<td><a href=\"..\">Up a directory</a></td><td>--</td>\n</tr>\n");
 						}
 						for (File fileToList : fileList) {
-							if (fileToList.getName().startsWith(".")) {
+							String fileName = fileToList.getName();
+							if (fileName.startsWith(".")) {
 								continue;
 							}
 							if (fileToList.isDirectory()) {
-								writer.write("<tr>\n<td><a href=\"" + fileToList.getName() + "/\">" + fileToList.getName() + "</a></td><td>--</td>\n</tr>\n");
+								writer.write("<tr>\n<td><a href=\"" + fileName + "/\">" + fileName + "</a></td><td>--</td>\n</tr>\n");
 							}
 						}
 						for (File fileToList : fileList) {
-							if (fileToList.getName().startsWith(".")) {
+							String fileName = fileToList.getName();
+							if (fileName.startsWith(".")) {
 								continue;
 							}
 							if (fileToList.isFile()) {
@@ -133,7 +135,7 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 									sizeString = theSize + " kB";
 								}
 
-								writer.write("<tr>\n<td><a href=\"" + fileToList.getName() + "\">" + fileToList.getName() + "</a></td><td>" + sizeString + "</td>\n");
+								writer.write("<tr>\n<td><a href=\"" + fileName + "\">" + fileName + "</a></td><td>" + sizeString + "</td>\n");
 							}
 						}
 						writer.write("</table>\n<br>\n");
