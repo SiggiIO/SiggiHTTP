@@ -170,13 +170,4 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 	protected String prepareHtml(String html, HTTPRequest request) {
 		return html;
 	}
-
-	protected String prepareCss(String css, HTTPRequest request) {
-		return css;
-	}
-
-	protected String prepareJs(String js, HTTPRequest request) {
-		return js;
-	}
-
 }
