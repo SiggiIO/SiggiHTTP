@@ -251,7 +251,7 @@ public final class HTTPServer {
 	}
 
 	String getServerSignature(String host) {
-		return "SiggiHTTP " + getVersion() + ", an HTTP server by Siggi - made with &hearts; on Planet Earth!";
+		return "SiggiHTTP " + getVersion() + (isSnapshot() ? " (snapshot)" : "") + ", an HTTP server by Siggi - made with &hearts; on Planet Earth!";
 	}
 
 	/**
