@@ -179,39 +179,4 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 		return js;
 	}
 
-	private String computeEtag(InputStream in) {
-		String eTag = null;
-		try { // Compute ETag
-			MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
-			MessageDigest messageDigest2 = MessageDigest.getInstance("MD5");
-			int c;
-			byte[] buffer = new byte[4096];
-			while ((c = in.read(buffer, 0, buffer.length)) != -1) {
-				messageDigest.update(buffer, 0, c);
-				messageDigest2.update(buffer, 0, c);
-			}
-			byte[] digest = messageDigest.digest();
-			byte[] digest2 = messageDigest2.digest();
-			messageDigest.reset();
-			messageDigest2.reset();
-			ByteArrayOutputStream digestStream = new ByteArrayOutputStream();
-			for (int i = 0; i < digest.length; i++) {
-				String digestByte = Integer.toString(digest[i] & 0xff, 16);
-				while (digestByte.length() < 2) {
-					digestByte = "0" + digestByte;
-				}
-				digestStream.write(digestByte.getBytes());
-			}
-			for (int i = 0; i < digest2.length; i++) {
-				String digestByte = Integer.toString(digest2[i] & 0xff, 16);
-				while (digestByte.length() < 2) {
-					digestByte = "0" + digestByte;
-				}
-				digestStream.write(digestByte.getBytes());
-			}
-			eTag = new String(digestStream.toByteArray());
-		} catch (NoSuchAlgorithmException | IOException e) {
-		}
-		return eTag;
-	}
 }
