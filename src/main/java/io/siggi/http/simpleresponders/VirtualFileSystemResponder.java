@@ -4,11 +4,7 @@ import io.siggi.http.HTTPRequest;
 import io.siggi.http.HTTPResponder;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class VirtualFileSystemResponder implements HTTPResponder {
 
