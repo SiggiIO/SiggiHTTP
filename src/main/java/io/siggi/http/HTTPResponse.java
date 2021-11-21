@@ -96,6 +96,23 @@ public class HTTPResponse extends OutputStream {
 		if (!file.exists()) {
 			return;
 		}
+		if (!request.method.equals("GET") || !request.method.equals("HEAD")) {
+			switch (request.method) {
+				case "OPTIONS": {
+					setHeader("204 No Content");
+					setHeader("Allow", "OPTIONS, GET, HEAD");
+					sendHeaders();
+				}
+				break;
+				default: {
+					setHeader("405 Method Not Allowed");
+					setContentType("text/plain");
+					write("405 Method Not Allowed");
+				}
+				break;
+			}
+			return;
+		}
 		boolean partialContent = false;
 		long partialStart = 0L;
 		long partialEnd = 0L;
