@@ -23,6 +23,9 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 	 */
 	public final String realPath;
 
+	private boolean allowWriteAccess = false;
+	private HTTPResponder filter = null;
+
 	/**
 	 * Creates a simple responder that links to a file
 	 * @param mountPath path to mount this filesystem at
@@ -42,10 +45,16 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 	/**
 	 * Writes a response to the HTTPRequest
 	 * @param request the request to process
-	 * @throws IOException if something goes wrong
+	 * @throws Exception if something goes wrong
 	 */
 	@Override
-	public void respond(HTTPRequest request) throws IOException {
+	public void respond(HTTPRequest request) throws Exception {
+		if (filter != null) {
+			filter.respond(request);
+			if (request.alreadyWrote()) {
+				return;
+			}
+		}
 		if (request.url.toLowerCase().startsWith(mountPath + "/") || request.url.toLowerCase().equals(mountPath)) {
 			String access = request.url.substring(mountPath.length());
 			File file = new File(realPath + access);
@@ -113,7 +122,7 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 						}
 						for (File fileToList : fileList) {
 							String fileName = fileToList.getName();
-							if (fileName.startsWith(".")) {
+							if (fileName.startsWith(".") || fileName.contains(".httpupload.")) {
 								continue;
 							}
 							if (fileToList.isFile()) {
@@ -147,9 +156,12 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 						request.response.write(pageBytes);
 					}
 				}
-			} else if (file.isFile()) {
+			} else {
 				if (!access.endsWith("/")) {
-					request.response.returnFile(file);
+					if (allowWriteAccess)
+						request.response.handleRequestWithFile(file);
+					else
+						request.response.returnFile(file);
 				}
 			}
 		}
@@ -169,5 +181,15 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 
 	protected String prepareHtml(String html, HTTPRequest request) {
 		return html;
+	}
+
+	public VirtualFileSystemResponder setAllowWriteAccess(boolean allowWriteAccess) {
+		this.allowWriteAccess = allowWriteAccess;
+		return this;
+	}
+
+	public VirtualFileSystemResponder setFilter(HTTPResponder filter) {
+		this.filter = filter;
+		return this;
 	}
 }
