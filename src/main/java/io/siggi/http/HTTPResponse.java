@@ -3,6 +3,7 @@ package io.siggi.http;
 import io.siggi.http.util.Util;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -223,6 +224,63 @@ public class HTTPResponse extends OutputStream {
 		} else {
 			setHeader("304 Not Modified");
 			sendHeaders();
+		}
+	}
+
+	public void handleRequestWithFile(File f) throws IOException {
+		switch (request.method.toUpperCase()) {
+			case "GET":
+			case "HEAD": {
+				returnFile(f);
+			}
+			break;
+			case "OPTIONS": {
+				setHeader("204 No Content");
+				setHeader("Allow", "OPTIONS, GET, HEAD, PUT, DELETE");
+				sendHeaders();
+			}
+			case "PUT": {
+				File parentFile = f.getParentFile();
+				if (!parentFile.exists()) {
+					parentFile.mkdirs();
+				}
+				File tmpFile = new File(parentFile, f.getName() + ".httpupload." + Util.randomChars(6));
+				try {
+					try (FileOutputStream out = new FileOutputStream(tmpFile)) {
+						Util.copy(request.inStream, out);
+					}
+					if (tmpFile.exists()) {
+						if (f.exists()) {
+							f.delete();
+						}
+						tmpFile.renameTo(f);
+					} else {
+						setHeader("500 Internal Server Error");
+						setContentType("text/plain");
+						sendHeaders();
+						write("The file was not saved. Please try again.");
+						return;
+					}
+				} finally {
+					if (tmpFile.exists())
+						tmpFile.delete();
+				}
+				setHeader("204 No Content");
+				sendHeaders();
+			}
+			break;
+			case "DELETE": {
+				f.delete();
+				setHeader("204 No Content");
+				sendHeaders();
+			}
+			break;
+			default: {
+				setHeader("405 Method Not Allowed");
+				setContentType("text/plain");
+				write("405 Method Not Allowed");
+			}
+			break;
 		}
 	}
 
