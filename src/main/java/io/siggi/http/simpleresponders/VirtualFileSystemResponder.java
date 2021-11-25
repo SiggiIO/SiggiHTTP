@@ -2,6 +2,8 @@ package io.siggi.http.simpleresponders;
 
 import io.siggi.http.HTTPRequest;
 import io.siggi.http.HTTPResponder;
+import io.siggi.http.defaultresponders.DefaultResponder;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStreamWriter;
@@ -55,7 +57,7 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 			String access = request.url.substring(mountPath.length());
 			File file = new File(realPath + access);
 			if (access.contains("/../") || access.endsWith("/..")) {
-				String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>400 Bad Request</title>\n<style>\nbody { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\ntd { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n</style>\n</head>\n<body>\n<h1>400 Bad Request</h1><br>\nQuit tryna hack me!<br>\n<br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
+				String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>400 Bad Request</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>400 Bad Request</h1><br>\nQuit tryna hack me!<br>\n<br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
 				byte pageBytes[] = request.response.getBytes(page);
 				request.response.setHeader("400 Bad Request");
 				request.response.contentLength((long) pageBytes.length);
@@ -84,7 +86,7 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 				} else {
 					File checkListing = new File(file, "denylist");
 					if (checkListing.exists()) {
-						String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>403 Forbidden</title>\n<style>\nbody { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\ntd { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n</style>\n</head>\n<body>\n<h1>403 Forbidden</h1><br>\nThe contents of this directory cannot be listed.<br>\n<br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
+						String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>403 Forbidden</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>403 Forbidden</h1><br>\nThe contents of this directory cannot be listed.<br>\n<br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
 						byte pageBytes[] = request.response.getBytes(page);
 						request.response.setHeader("403 Forbidden");
 						request.response.contentLength((long) pageBytes.length);
@@ -95,7 +97,7 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 						ByteArrayOutputStream out = new ByteArrayOutputStream();
 						OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
 						writer.write("<!DOCTYPE html>\n<html>\n<head>\n<title>Index of " + request.url + "</title>\n");
-						writer.write("<style>\nbody { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\ntd { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n</style>\n");
+						writer.write(DefaultResponder.STYLE);
 						writer.write("</head>\n");
 						writer.write("<body>\n");
 						writer.write("<h1>Index of " + request.url + "</h1><br>\n");

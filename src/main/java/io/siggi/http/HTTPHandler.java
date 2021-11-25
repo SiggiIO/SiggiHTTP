@@ -1,5 +1,6 @@
 package io.siggi.http;
 
+import io.siggi.http.defaultresponders.DefaultResponder;
 import io.siggi.http.exception.TooBigException;
 import io.siggi.http.io.ChunkedInputStream;
 import io.siggi.http.io.ChunkedOutputStream;
@@ -61,7 +62,7 @@ final class HTTPHandler {
 				if (list != null) {
 					if (list.size() == 1) {
 						String location = (String) list.get(0);
-						String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>302 Found</title>\n<style>\nbody { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\ntd { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n</style>\n</head>\n<body>\n<h1>302 Found</h1><br>\nThe resource you requested has moved to a new location.  <a href=\"" + location + "\">Click here to go to the new location.</a><br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
+						String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>302 Found</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>302 Found</h1><br>\nThe resource you requested has moved to a new location.  <a href=\"" + location + "\">Click here to go to the new location.</a><br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
 						byte[] pageBytes = getBytes(page);
 						setHeader("Content-Length", Integer.toString(pageBytes.length));
 						setHeader("Content-Type", "text/html; charset=UTF-8");
@@ -77,7 +78,7 @@ final class HTTPHandler {
 				if (list != null) {
 					if (list.size() == 1) {
 						String location = (String) list.get(0);
-						String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>303 See Other</title>\n<style>\nbody { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\ntd { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n</style>\n</head>\n<body>\n<h1>303 See Other</h1><br>\nYou are being referred to a new location.  <a href=\"" + location + "\">Click here to go to the new location.</a><br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
+						String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>303 See Other</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>303 See Other</h1><br>\nYou are being referred to a new location.  <a href=\"" + location + "\">Click here to go to the new location.</a><br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
 						byte[] pageBytes = getBytes(page);
 						setHeader("Content-Length", Integer.toString(pageBytes.length));
 						setHeader("Content-Type", "text/html; charset=UTF-8");
@@ -100,7 +101,7 @@ final class HTTPHandler {
 				if (wrote) {
 					finishBody();
 				} else {
-					String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>500 Internal Server Error</title>\n<style>\nbody { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\ntd { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n</style>\n</head>\n<body>\n<h1>500 Internal Server Error</h1><br>\nThe server failed to produce a 404 response.  Check the server code to make sure it's working properly!<br>\n" + server.getServerSignature(host) + "<br>\n</body>\n</html>";
+					String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>500 Internal Server Error</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>500 Internal Server Error</h1><br>\nThe server failed to produce a 404 response.  Check the server code to make sure it's working properly!<br>\n" + server.getServerSignature(host) + "<br>\n</body>\n</html>";
 					byte pageBytes[] = getBytes(page);
 					setHeader("500 Internal Server Error");
 					setHeader("Content-Length", Integer.toString(pageBytes.length));
@@ -155,7 +156,7 @@ final class HTTPHandler {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		new RuntimeException().printStackTrace(new PrintStream(baos, true));
 		String req = new String(baos.toByteArray());
-		String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>400 Bad Request</title>\n<style>\nbody { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\ntd { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n</style>\n</head>\n<body>\n<h1>400 Bad Request</h1><br>\n<br>\n<pre style=\"font-family: Monaco; font-size: 10px\">" + req + "</pre><br>\n<br>\n<hr>\n" + server.getServerSignature(host) + "<br>\n</body>\n</html>";
+		String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>400 Bad Request</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>400 Bad Request</h1><br>\n<br>\n<pre style=\"font-family: Monaco; font-size: 10px\">" + req + "</pre><br>\n<br>\n<hr>\n" + server.getServerSignature(host) + "<br>\n</body>\n</html>";
 		byte pageBytes[] = getBytes(page);
 		setHeader("400 Bad Request");
 		setHeader("Content-Length", Integer.toString(pageBytes.length));
@@ -167,7 +168,7 @@ final class HTTPHandler {
 
 	private void requestUriTooBig() throws IOException {
 		resetHeaders();
-		String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>414 Request URI Too Long</title>\n<style>\nbody { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\ntd { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n</style>\n</head>\n<body>\n<h1>414 Request URI Too Long</h1><br>\nThat's what she said!<br>\n<br>\nThe request URI you submitted is too large for this server to handle!<br>\n<br>\n<hr>\n" + server.getServerSignature(host) + "<br>\n</body>\n</html>";
+		String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>414 Request URI Too Long</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>414 Request URI Too Long</h1><br>\nThat's what she said!<br>\n<br>\nThe request URI you submitted is too large for this server to handle!<br>\n<br>\n<hr>\n" + server.getServerSignature(host) + "<br>\n</body>\n</html>";
 		byte pageBytes[] = getBytes(page);
 		setHeader("414 Request URI Too Long");
 		setHeader("Content-Length", Integer.toString(pageBytes.length));
@@ -179,7 +180,7 @@ final class HTTPHandler {
 
 	private void tooBig() throws IOException {
 		resetHeaders();
-		String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>413 Request Entity Too Large</title>\n<style>\nbody { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\ntd { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n</style>\n</head>\n<body>\n<h1>413 Request Entity Too Large</h1><br>\nThat's what she said!<br>\n<br>\nThe data you submitted is too large for this server to handle!<br>\n<br>\n<hr>\n" + server.getServerSignature(host) + "<br>\n</body>\n</html>";
+		String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>413 Request Entity Too Large</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>413 Request Entity Too Large</h1><br>\nThat's what she said!<br>\n<br>\nThe data you submitted is too large for this server to handle!<br>\n<br>\n<hr>\n" + server.getServerSignature(host) + "<br>\n</body>\n</html>";
 		byte pageBytes[] = getBytes(page);
 		setHeader("413 Request Entity Too Large");
 		setHeader("Content-Length", Integer.toString(pageBytes.length));
@@ -356,7 +357,7 @@ final class HTTPHandler {
 					String stackTrace = new String(baos.toByteArray());
 					if (!wrote) {
 						try {
-							String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>500 Internal Server Error</title>\n<style>\nbody { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\ntd { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n</style>\n</head>\n<body>\n<h1>500 Internal Server Error</h1><br>\n*puke* ugh, I feel sick.<p>An error has occurred. The details of this problem are shown below.<br>\n<hr>\n<pre style=\"font-family: Monaco; font-size: 10px\">" + stackTrace + "</pre>\n<hr>\n" + server.getServerSignature(host) + "<br>\n</body>\n</html>";
+							String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>500 Internal Server Error</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>500 Internal Server Error</h1><br>\n*puke* ugh, I feel sick.<p>An error has occurred. The details of this problem are shown below.<br>\n<hr>\n<pre style=\"font-family: Monaco; font-size: 10px\">" + stackTrace + "</pre>\n<hr>\n" + server.getServerSignature(host) + "<br>\n</body>\n</html>";
 							byte pageBytes[] = getBytes(page);
 							setHeader("500 Internal Server Error");
 							setHeader("Content-Length", Integer.toString(pageBytes.length));

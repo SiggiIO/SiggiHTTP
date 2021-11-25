@@ -11,6 +11,11 @@ import java.util.Map;
  */
 public class DefaultResponder implements HTTPResponder {
 
+	public static final String STYLE =
+			"<style>\n"
+					+ "body { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n"
+					+ "td { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n"
+					+ "</style>\n";
 	private final int code;
 	private final String title, message;
 
@@ -28,7 +33,7 @@ public class DefaultResponder implements HTTPResponder {
 
 	@Override
 	public void respond(HTTPRequest request) throws IOException {
-		String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>" + code + " " + title + "</title>\n<style>\nbody { font-family: Helvetica; }\ntd { font-family: Helvetica; }\n</style>\n</head>\n<body>\n<h1>" + code + " " + title + "</h1><br>\n" + message + "<br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
+		String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>" + code + " " + title + "</title>\n" + STYLE + "</head>\n<body>\n<h1>" + code + " " + title + "</h1><br>\n" + message + "<br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
 		byte pageBytes[] = request.response.getBytes(page);
 		request.response.setHeader(code + " " + title);
 		request.response.contentLength(pageBytes.length);
