@@ -13,8 +13,18 @@ public class DefaultResponder implements HTTPResponder {
 
 	public static final String STYLE =
 			"<style>\n"
-					+ "body { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n"
-					+ "td { font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif; }\n"
+					+ "body {\n"
+					+ "  font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif;\n"
+					+ "}\n"
+					+ "td {\n"
+					+ "  font-family: \"Calisto MT\", Optima, \"Lucida Bright\", serif;\n"
+					+ "}\n"
+					+ "@media (prefers-color-scheme: dark) {\n"
+					+ "  body {\n"
+					+ "    color: white;\n"
+					+ "    background-color: black;\n"
+					+ "  }\n"
+					+ "}\n"
 					+ "</style>\n";
 	private final int code;
 	private final String title, message;
