@@ -7,6 +7,7 @@ import io.siggi.http.defaultresponders.DefaultResponder;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.OutputStreamWriter;
+import java.util.Arrays;
 
 public class VirtualFileSystemResponder implements HTTPResponder {
 
@@ -105,25 +106,28 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 							writer.write("<b>WARNING:</b> This HTTP server does not support Apache .htaccess files.  To remove this message, delete the .htaccess file from this directory.<br>\n");
 						}
 						File[] fileList = file.listFiles();
+						Arrays.sort(fileList, (a, b) -> {
+							if (a.isDirectory()) {
+								if (!b.isDirectory()) {
+									return -1;
+								}
+							} else if (b.isDirectory()) {
+								return 1;
+							}
+							return a.getName().compareTo(b.getName());
+						});
 						writer.write("<table>\n<tr>\n<td>File name</td><td>Size</td>\n</tr>\n");
 						if (!request.url.equals("/")) {
 							writer.write("<tr>\n<td><a href=\"..\">Up a directory</a></td><td>--</td>\n</tr>\n");
 						}
 						for (File fileToList : fileList) {
 							String fileName = fileToList.getName();
-							if (fileName.startsWith(".")) {
+							if (fileName.startsWith(".") || fileName.contains(".httpupload.")) {
 								continue;
 							}
 							if (fileToList.isDirectory()) {
 								writer.write("<tr>\n<td><a href=\"" + fileName + "/\">" + fileName + "</a></td><td>--</td>\n</tr>\n");
-							}
-						}
-						for (File fileToList : fileList) {
-							String fileName = fileToList.getName();
-							if (fileName.startsWith(".") || fileName.contains(".httpupload.")) {
-								continue;
-							}
-							if (fileToList.isFile()) {
+							} else if (fileToList.isFile()) {
 								long fileSize = fileToList.length();
 								String sizeString = fileSize + " bytes";
 								if (fileSize == 1L) {
