@@ -537,9 +537,6 @@ final class HTTPHandler {
 				badRequest();
 				return;
 			}
-			if (method.equalsIgnoreCase("GET") && websocketUpgrade(method, requestURI, fullRequestURI, get, cookies, headers, host, referer, userAgent)) {
-				return;
-			}
 			int postLimit = server.getPostLimit();
 			long uploadLimit = server.getUploadLimit();
 			if (expect != null) {
@@ -984,67 +981,6 @@ final class HTTPHandler {
 		method = method.toUpperCase();
 		return method.equals("GET") || method.equals("POST") || method.equals("HEAD")
 				|| method.equals("PUT") || method.equals("DELETE");
-	}
-
-	private boolean websocketUpgrade(String method, String requestURI, String fullRequestURI, Map<String, String> get, Map<String, String> cookies, Map<String, List<String>> headers, String host, String referer, String userAgent) throws IOException {
-		HTTPResponderRegistry registry = server.getResponderRegistry(host);
-		HTTPWebSocketHandler handler = registry.getWebSocketHandler(requestURI);
-		if (handler == null) {
-			return false;
-		}
-		boolean upgrade = false;
-		List<String> ch = headers.get("Connection");
-		if (ch == null) {
-			return false;
-		}
-		for (String str : ch) {
-			if (str.equalsIgnoreCase("Upgrade")) {
-				upgrade = true;
-			}
-		}
-		if (!upgrade) {
-			return false;
-		}
-		boolean ws = false;
-		List<String> uh = headers.get("Upgrade");
-		if (uh == null) {
-			return false;
-		}
-		for (String str : uh) {
-			if (str.equalsIgnoreCase("websocket")) {
-				ws = true;
-			}
-		}
-		if (!ws) {
-			return false;
-		}
-		String wsNonce = null;
-		List<String> swsk = headers.get("Sec-WebSocket-Key");
-		if (swsk == null) {
-			return false;
-		}
-		for (String str : swsk) {
-			wsNonce = str;
-		}
-		if (wsNonce == null) {
-			return false;
-		}
-		String resultNonce;
-		try {
-			MessageDigest md = MessageDigest.getInstance("SHA-1");
-			md.update((wsNonce + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes());
-			byte[] sha1Nonce = md.digest();
-			resultNonce = Base64.getEncoder().encodeToString(sha1Nonce);
-		} catch (Exception e) {
-			throw new RuntimeException("Something went wrong", e);
-		}
-		wrote = true;
-		cannotKeepAlive = true;
-		keepAlive = false;
-		noAutoClose = true;
-		HTTPWebSocket c = new HTTPWebSocket(this, sock, rawIn, out, wsNonce, resultNonce, method, requestURI, fullRequestURI, get, cookies, headers, host, referer, userAgent);
-		handler.handleWebSocket(c);
-		return true;
 	}
 
 	Socket upgradeSocket() {

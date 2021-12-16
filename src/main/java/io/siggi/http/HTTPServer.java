@@ -588,24 +588,4 @@ public final class HTTPServer {
 	public void setRequestURISizeLimit(int requestURISizeLimit) {
 		this.requestURISizeLimit = requestURISizeLimit;
 	}
-
-	private int websocketMaxPayloadLength = 16384;
-
-	/**
-	 * Get the max size of a websocket payload. Default is 16 kB.
-	 *
-	 * @return the max size of a websocket payload
-	 */
-	public int getWebsocketMaxPayloadLength() {
-		return websocketMaxPayloadLength;
-	}
-
-	/**
-	 * Set the max size of a websocket payload. Default is 16 kB.
-	 *
-	 * @param websocketMaxPayloadLength the new websocket payload size limit
-	 */
-	public void setWebsocketMaxPayloadLength(int websocketMaxPayloadLength) {
-		this.websocketMaxPayloadLength = websocketMaxPayloadLength;
-	}
 }
