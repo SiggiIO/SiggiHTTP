@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -565,5 +566,19 @@ public class HTTPResponse extends OutputStream {
 		} catch (IOException | NoSuchAlgorithmException e) {
 			return null;
 		}
+	}
+
+	public Socket upgradeConnection(String upgradeHeader) throws IOException {
+		setHeader("101 Switching Protocols");
+		deleteHeader("Content-Type");
+		deleteHeader("Keep-Alive");
+		deleteHeader("Transfer-Encoding");
+		deleteHeader("Content-Length");
+		if (upgradeHeader != null) {
+			setHeader("Connection", "Upgrade");
+			setHeader("Upgrade", upgradeHeader);
+		}
+		sendHeaders();
+		return request.handler.upgradeSocket();
 	}
 }

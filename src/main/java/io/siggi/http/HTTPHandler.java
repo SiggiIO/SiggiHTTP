@@ -1046,4 +1046,11 @@ final class HTTPHandler {
 		handler.handleWebSocket(c);
 		return true;
 	}
+
+	Socket upgradeSocket() {
+		cannotKeepAlive = true;
+		keepAlive = false;
+		noAutoClose = true;
+		return sock;
+	}
 }
