@@ -193,10 +193,9 @@ final class HTTPHandler {
 	private final List<File> purgeable = new LinkedList<>();
 
 	private File createTmpFile() {
-		File dir = new File(System.getProperty("java.io.tmpdir"));
 		File file = null;
 		do {
-			file = new File(dir, genFileName() + ".dat");
+			file = new File(server.getTmpDir(), genFileName() + ".dat");
 		} while (file.exists());
 		purgeable.add(file);
 		return file;

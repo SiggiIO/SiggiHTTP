@@ -4,6 +4,7 @@ import io.siggi.http.defaultresponders.DefaultResponder;
 import io.siggi.http.iphelper.IP;
 import io.siggi.http.registry.HTTPResponderRegistry;
 import io.siggi.http.session.Sessions;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -59,12 +60,13 @@ public final class HTTPServer {
 		return snapshot;
 	}
 
-	HTTPServer(Sessions sessions) {
+	HTTPServer(Sessions sessions, File tmpDir) {
 		this.port = -1;
 		startedProcessing = true;
 		if (sessions != null) {
 			this.sessions = sessions;
 		}
+		this.tmpDir = tmpDir;
 	}
 
 	/**
@@ -104,6 +106,7 @@ public final class HTTPServer {
 	public HTTPServer(int port) throws IOException {
 		this.port = port;
 		serverSocket = new ServerSocket(port);
+		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
 	}
 
 	/**
@@ -118,6 +121,7 @@ public final class HTTPServer {
 	public HTTPServer(int port, int backlog) throws IOException {
 		this.port = port;
 		serverSocket = new ServerSocket(port, backlog);
+		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
 	}
 
 	/**
@@ -133,6 +137,7 @@ public final class HTTPServer {
 	public HTTPServer(int port, int backlog, InetAddress bindAddr) throws IOException {
 		this.port = port;
 		serverSocket = new ServerSocket(port, backlog, bindAddr);
+		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
 	}
 
 	/**
@@ -152,6 +157,7 @@ public final class HTTPServer {
 		}
 		this.port = p;
 		this.serverSocket = serverSocket;
+		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
 	}
 
 	/**
@@ -461,6 +467,8 @@ public final class HTTPServer {
 
 	private Sessions sessions = Sessions.create(3600000L);
 
+	private final File tmpDir;
+
 	/**
 	 * Get the Sessions object for this HTTPServer.
 	 *
@@ -587,5 +595,9 @@ public final class HTTPServer {
 	 */
 	public void setRequestURISizeLimit(int requestURISizeLimit) {
 		this.requestURISizeLimit = requestURISizeLimit;
+	}
+
+	public File getTmpDir() {
+		return tmpDir;
 	}
 }
