@@ -51,6 +51,9 @@ final class HTTPHandler {
 		HTTPResponder responder = server.getResponderRegistry(request.host).getResponder(request.url);
 		if (responder != null) {
 			responder.respond(request);
+			if (noAutoClose && cannotKeepAlive) {
+				return;
+			}
 			if (wrote) {
 				finishBody();
 			}
