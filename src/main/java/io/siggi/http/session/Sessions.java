@@ -124,6 +124,8 @@ public abstract class Sessions {
 						write.append('\n');
 					} else if (readC == 't') {
 						write.append('\t');
+					} else {
+						write.append(readC);
 					}
 				} else {
 					write.append(cc);
