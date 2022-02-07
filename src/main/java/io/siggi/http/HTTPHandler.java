@@ -687,7 +687,7 @@ final class HTTPHandler {
 						// we consumed it
 						contentStream = null;
 					}
-				} else if (incomingContentType.equals("application/x-www-form-urlencoded")) {
+				} else if (incomingContentType.toLowerCase().contains("application/x-www-form-urlencoded")) {
 					try {
 						if (postLimit > 0 && incomingContentLength > postLimit) {
 							tooBig();
