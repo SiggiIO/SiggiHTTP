@@ -316,6 +316,40 @@ public final class HTTPServer {
 		respond404 = responder;
 	}
 	private final Map<String, String> mimeTypes = new HashMap<>();
+	{
+		// common file extensions and their mime types
+		mimeTypes.put("html", "text/html; charset=utf-8");
+		mimeTypes.put("htm", "text/html; charset=utf-8");
+		mimeTypes.put("txt", "text/plain; charset=utf-8");
+		mimeTypes.put("js", "text/javascript; charset=utf-8");
+		mimeTypes.put("json", "application/json; charset=utf-8");
+
+		mimeTypes.put("mp3", "audio/mpeg3");
+		mimeTypes.put("aif", "audio/x-aiff");
+		mimeTypes.put("aiff", "audio/x-aiff");
+		mimeTypes.put("aifc", "audio/x-aifc");
+		mimeTypes.put("swf", "application/x-shockwave-flash");
+		mimeTypes.put("avi", "video/x-msvideo");
+		mimeTypes.put("m3u", "audio/x-mpegurl");
+		mimeTypes.put("m4v", "video/x-m4v");
+		mimeTypes.put("m4a", "audio/mp4a-latm");
+		mimeTypes.put("m4b", "audio/mp4a-latm");
+		mimeTypes.put("m4p", "audio/mp4a-latm");
+		mimeTypes.put("m4r", "audio/mp4a-latm");
+		mimeTypes.put("mid", "audio/midi");
+		mimeTypes.put("midi", "audio/midi");
+		mimeTypes.put("mov", "video/quicktime");
+		mimeTypes.put("ogg", "application/ogg");
+		mimeTypes.put("mp4", "video/mp4");
+		mimeTypes.put("png", "image/png");
+		mimeTypes.put("jpg", "image/jpeg");
+		mimeTypes.put("jpeg", "image/jpeg");
+		mimeTypes.put("gif", "image/gif");
+		mimeTypes.put("ttf", "application/x-font-ttf");
+		mimeTypes.put("css", "text/css");
+		mimeTypes.put("svg", "image/svg+xml");
+		mimeTypes.put("pdf", "application/pdf");
+	}
 
 	/**
 	 * Sets the mime type of files with the specified extension to the specified
@@ -340,90 +374,7 @@ public final class HTTPServer {
 	 * @return the mime type
 	 */
 	public String getMimeType(String extension) {
-		String s = extension.toLowerCase();
-		String mT = mimeTypes.get(extension);
-		if (mT != null) {
-			return mT;
-		}
-		if (s.equals("mp3")) {
-			return "audio/mpeg3";
-		}
-		if (s.equals("aif") || s.equals("aiff")) {
-			return "audio/x-aiff";
-		}
-		if (s.equals("aifc")) {
-			return "audio/x-aifc";
-		}
-		if (s.equals("html") || s.equals("htm")) {
-			return "text/html";
-		}
-		if (s.equals("txt")) {
-			return "text/plain";
-		}
-		if (s.equals("swf")) {
-			return "application/x-shockwave-flash";
-		}
-		if (s.equals("avi")) {
-			return "video/x-msvideo";
-		}
-		if (s.equals("m3u")) {
-			return "audio/x-mpegurl";
-		}
-		if (s.equals("m4v")) {
-			return "video/x-m4v";
-		}
-		if (s.equals("m4a")) {
-			return "audio/mp4a-latm";
-		}
-		if (s.equals("m4b")) {
-			return "audio/mp4a-latm";
-		}
-		if (s.equals("m4p")) {
-			return "audio/mp4a-latm";
-		}
-		if (s.equals("m4r")) {
-			return "audio/mp4a-latm";
-		}
-		if (s.equals("mid") || s.equals("midi")) {
-			return "audio/midi";
-		}
-		if (s.equals("mov")) {
-			return "video/quicktime";
-		}
-		if (s.equals("ogg")) {
-			return "application/ogg";
-		}
-		if (s.equals("mp4")) {
-			return "video/mp4";
-		}
-		if (s.equalsIgnoreCase("png")) {
-			return "image/png";
-		}
-		if (s.equalsIgnoreCase("jpg") || s.equalsIgnoreCase("jpeg")) {
-			return "image/jpeg";
-		}
-		if (s.equalsIgnoreCase("gif")) {
-			return "image/gif";
-		}
-		if (s.equalsIgnoreCase("ttf")) {
-			return "application/x-font-ttf";
-		}
-		if (s.equalsIgnoreCase("css")) {
-			return "text/css";
-		}
-		if (s.equalsIgnoreCase("js")) {
-			return "text/javascript";
-		}
-		if (s.equalsIgnoreCase("json")) {
-			return "application/json";
-		}
-		if (s.equalsIgnoreCase("svg")) {
-			return "image/svg+xml";
-		}
-		if (s.equalsIgnoreCase("pdf")) {
-			return "application/pdf";
-		}
-		return "application/x-octet-stream";
+		return mimeTypes.getOrDefault(extension.toLowerCase(), "application/x-octet-stream");
 	}
 
 	private final Set<IP> trustedIPs = new HashSet<>();
