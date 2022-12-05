@@ -68,7 +68,7 @@ final class HTTPHandler {
 						String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>302 Found</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>302 Found</h1><br>\nThe resource you requested has moved to a new location.  <a href=\"" + location + "\">Click here to go to the new location.</a><br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
 						byte[] pageBytes = getBytes(page);
 						setHeader("Content-Length", Integer.toString(pageBytes.length));
-						setHeader("Content-Type", "text/html; charset=UTF-8");
+						setHeader("Content-Type", "text/html; charset=utf-8");
 						writeHeaders();
 						contentOutStream.write(pageBytes);
 						return;
@@ -84,7 +84,7 @@ final class HTTPHandler {
 						String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>303 See Other</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>303 See Other</h1><br>\nYou are being referred to a new location.  <a href=\"" + location + "\">Click here to go to the new location.</a><br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
 						byte[] pageBytes = getBytes(page);
 						setHeader("Content-Length", Integer.toString(pageBytes.length));
-						setHeader("Content-Type", "text/html; charset=UTF-8");
+						setHeader("Content-Type", "text/html; charset=utf-8");
 						writeHeaders();
 						contentOutStream.write(pageBytes);
 						return;
@@ -108,7 +108,7 @@ final class HTTPHandler {
 					byte pageBytes[] = getBytes(page);
 					setHeader("500 Internal Server Error");
 					setHeader("Content-Length", Integer.toString(pageBytes.length));
-					setHeader("Content-Type", "text/html; charset=UTF-8");
+					setHeader("Content-Type", "text/html; charset=utf-8");
 					writeHeaders();
 					contentOutStream.write(pageBytes);
 				}
@@ -163,7 +163,7 @@ final class HTTPHandler {
 		byte pageBytes[] = getBytes(page);
 		setHeader("400 Bad Request");
 		setHeader("Content-Length", Integer.toString(pageBytes.length));
-		setHeader("Content-Type", "text/html; charset=UTF-8");
+		setHeader("Content-Type", "text/html; charset=utf-8");
 		keepAlive(false);
 		writeHeaders();
 		out.write(pageBytes);
@@ -175,7 +175,7 @@ final class HTTPHandler {
 		byte pageBytes[] = getBytes(page);
 		setHeader("414 Request URI Too Long");
 		setHeader("Content-Length", Integer.toString(pageBytes.length));
-		setHeader("Content-Type", "text/html; charset=UTF-8");
+		setHeader("Content-Type", "text/html; charset=utf-8");
 		keepAlive(false);
 		writeHeaders();
 		out.write(pageBytes);
@@ -187,7 +187,7 @@ final class HTTPHandler {
 		byte pageBytes[] = getBytes(page);
 		setHeader("413 Request Entity Too Large");
 		setHeader("Content-Length", Integer.toString(pageBytes.length));
-		setHeader("Content-Type", "text/html; charset=UTF-8");
+		setHeader("Content-Type", "text/html; charset=utf-8");
 		keepAlive(false);
 		writeHeaders();
 		out.write(pageBytes);
@@ -363,7 +363,7 @@ final class HTTPHandler {
 							byte pageBytes[] = getBytes(page);
 							setHeader("500 Internal Server Error");
 							setHeader("Content-Length", Integer.toString(pageBytes.length));
-							setHeader("Content-Type", "text/html; charset=UTF-8");
+							setHeader("Content-Type", "text/html; charset=utf-8");
 							setHeader("Connection", "close");
 							writeHeaders();
 							out.write(pageBytes);
@@ -766,7 +766,7 @@ final class HTTPHandler {
 		responseHeader = "200 OK";
 		headers.clear();
 		String currentDate = getSimpleDateFormat().format(new Date(System.currentTimeMillis()));
-		setHeader("Content-Type", "text/html; charset=UTF-8");
+		setHeader("Content-Type", "text/html; charset=utf-8");
 		setHeader("Date", currentDate);
 		setHeader("Server", server.serverName);
 		setHeader("Transfer-Encoding", "chunked");

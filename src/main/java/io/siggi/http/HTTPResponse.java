@@ -75,7 +75,7 @@ public class HTTPResponse extends OutputStream {
 
 	public void setContentType(String contentType) {
 		if (contentType.equals("text/html")) {
-			contentType = "text/html; charset=UTF-8";
+			contentType = "text/html; charset=utf-8";
 		}
 		setHeader("Content-Type", contentType);
 	}

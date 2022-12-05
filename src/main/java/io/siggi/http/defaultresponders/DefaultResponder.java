@@ -59,7 +59,7 @@ public class DefaultResponder implements HTTPResponder {
 		byte pageBytes[] = request.response.getBytes(page);
 		request.response.setHeader(code + " " + title);
 		request.response.contentLength(pageBytes.length);
-		request.response.setHeader("Content-Type", "text/html; charset=UTF-8");
+		request.response.setHeader("Content-Type", "text/html; charset=utf-8");
 		request.response.write(pageBytes);
 	}
 

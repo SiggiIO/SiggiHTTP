@@ -62,7 +62,7 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 				byte pageBytes[] = request.response.getBytes(page);
 				request.response.setHeader("400 Bad Request");
 				request.response.contentLength((long) pageBytes.length);
-				request.response.setHeader("Content-Type", "text/html; charset=UTF-8");
+				request.response.setHeader("Content-Type", "text/html; charset=utf-8");
 				request.response.write(pageBytes);
 				return;
 			}
@@ -91,7 +91,7 @@ public class VirtualFileSystemResponder implements HTTPResponder {
 						byte pageBytes[] = request.response.getBytes(page);
 						request.response.setHeader("403 Forbidden");
 						request.response.contentLength((long) pageBytes.length);
-						request.response.setHeader("Content-Type", "text/html; charset=UTF-8");
+						request.response.setHeader("Content-Type", "text/html; charset=utf-8");
 						request.response.write(pageBytes);
 					} else {
 						// Generate a directory listing...
