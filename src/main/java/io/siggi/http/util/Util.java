@@ -223,6 +223,8 @@ public class Util {
 					sb.append("0");
 				}
 				sb.append(Integer.toString(a, 16).toUpperCase());
+			} else {
+				sb.append((char) b);
 			}
 		}
 		return sb.toString();
