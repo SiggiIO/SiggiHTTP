@@ -575,6 +575,28 @@ public final class HTTPServer {
 		this.requestURISizeLimit = requestURISizeLimit;
 	}
 
+	private boolean ignoringMultipartFormData = false;
+
+	/**
+	 * Returns whether HTTPServer will ignore multipart/form-data. See the docs of
+	 * {@link HTTPServer#setIgnoringMultipartFormData(boolean)}.
+	 *
+	 * @return true if HTTPServer is ignoring multipart/form-data.
+	 */
+	public boolean isIgnoringMultipartFormData() {
+		return ignoringMultipartFormData;
+	}
+
+	/**
+	 * Set whether HTTPServer will ignore multipart/form-data, false by default. If HTTPServer is ignoring
+	 * multipart/form-data, the raw stream of data will be available in {@link HTTPRequest#inStream}.
+	 *
+	 * @param ignore whether to ignore multipart/form-data.
+	 */
+	public void setIgnoringMultipartFormData(boolean ignore) {
+		this.ignoringMultipartFormData = ignore;
+	}
+
 	public File getTmpDir() {
 		return tmpDir;
 	}

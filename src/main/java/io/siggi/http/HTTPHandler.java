@@ -576,7 +576,7 @@ final class HTTPHandler {
 				contentStream = new EOFInputStream(stream);
 			}
 			if (contentStream != null) {
-				if (incomingContentType.toLowerCase().contains("multipart/form-data")) { // MULTIPART FORM
+				if (!server.isIgnoringMultipartFormData() && incomingContentType.toLowerCase().contains("multipart/form-data")) { // MULTIPART FORM
 					if (uploadLimit > 0L && incomingContentLength > uploadLimit) {
 						tooBig();
 						return;
@@ -717,6 +717,10 @@ final class HTTPHandler {
 			try {
 				req = new HTTPRequest(this, method, requestURI, fullRequestURI, get, post, cookies, headers, uploadedFiles, host, referer, userAgent, contentStream);
 				processHTTP(req);
+				if (contentStream != null) {
+					contentStream.setEofSequence(null);
+					Util.readFullyToBlackHole(contentStream);
+				}
 			} finally {
 				if (req != null) {
 					req.saveSession();

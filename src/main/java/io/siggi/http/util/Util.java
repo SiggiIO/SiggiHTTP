@@ -7,7 +7,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -172,6 +174,10 @@ public class Util {
 		if (!k.isEmpty() || !v.isEmpty()) {
 			map.put(k, v);
 		}
+	}
+
+	public static String headerUrlEncode(String str) {
+		return urlencode(str, " ").replace("\"", "%22");
 	}
 
 	public static String urlencode(String str) {
@@ -367,7 +373,7 @@ public class Util {
 	public static <T> Iterable<T> iterable(final Iterator<T> iterator) {
 		return () -> iterator;
 	}
-	
+
 	public static String formatDate(long date) {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
 		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -391,5 +397,72 @@ public class Util {
 			result[i] = randomDataCharset[sr.nextInt(length)];
 		}
 		return new String(result);
+	}
+
+	public static <V> V getFirstInList(List<V> list) {
+		if (list == null) return null;
+		return list.get(0);
+	}
+
+	public static Map<String,String> parseHeaderArguments(String header) {
+		Map<String, String> map = new CaseInsensitiveHashMap<>();
+		boolean inQuotes = false;
+		boolean usedQuotes = false;
+		StringBuilder key = new StringBuilder();
+		ByteArrayOutputStream val = new ByteArrayOutputStream();
+		OutputStreamWriter valWriter = new OutputStreamWriter(val, StandardCharsets.UTF_8);
+		boolean readingKey = false;
+		try {
+			for (int i = 0; i < header.length(); i++) {
+				char c = header.charAt(i);
+				if (readingKey) {
+					if (c == '=') {
+						readingKey = false;
+						inQuotes = false;
+						usedQuotes = false;
+						continue;
+					}
+					key.append(c);
+				} else {
+					if (c == '%') {
+						i += 2;
+						if (i >= header.length()) break;
+						valWriter.write(Integer.parseInt(header.substring(i - 1, i + 1), 16));
+						continue;
+					}
+					if (c == '"') {
+						inQuotes = !inQuotes;
+						if (!usedQuotes) {
+							valWriter.flush();
+							val.reset();
+							usedQuotes = true;
+						}
+						continue;
+					}
+					if (inQuotes) {
+						valWriter.write(c);
+					} else if (c == ';') {
+						valWriter.flush();
+						String value = new String(val.toByteArray(), StandardCharsets.UTF_8);
+						if (!usedQuotes) value = value.trim();
+						map.put(key.toString().trim(), value);
+						key.delete(0, key.length());
+						val.reset();
+						readingKey = true;
+					} else if (!usedQuotes) {
+						valWriter.write(c);
+					}
+				}
+			}
+			if (!readingKey) {
+				valWriter.flush();
+				String value = new String(val.toByteArray(), StandardCharsets.UTF_8);
+				if (!usedQuotes) value = value.trim();
+				map.put(key.toString().trim(), value);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		return map;
 	}
 }
