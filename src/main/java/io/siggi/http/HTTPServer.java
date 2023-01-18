@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -67,6 +68,7 @@ public final class HTTPServer {
 			this.sessions = sessions;
 		}
 		this.tmpDir = tmpDir;
+		addDefaultTrustedIPs();
 	}
 
 	/**
@@ -107,6 +109,7 @@ public final class HTTPServer {
 		this.port = port;
 		serverSocket = new ServerSocket(port);
 		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
+		addDefaultTrustedIPs();
 	}
 
 	/**
@@ -122,6 +125,7 @@ public final class HTTPServer {
 		this.port = port;
 		serverSocket = new ServerSocket(port, backlog);
 		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
+		addDefaultTrustedIPs();
 	}
 
 	/**
@@ -138,6 +142,7 @@ public final class HTTPServer {
 		this.port = port;
 		serverSocket = new ServerSocket(port, backlog, bindAddr);
 		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
+		addDefaultTrustedIPs();
 	}
 
 	/**
@@ -158,6 +163,7 @@ public final class HTTPServer {
 		this.port = p;
 		this.serverSocket = serverSocket;
 		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
+		addDefaultTrustedIPs();
 	}
 
 	/**
@@ -393,6 +399,27 @@ public final class HTTPServer {
 				ipAddr = IP.getIP(ipAddr.getFirstIP().toString() + "/" + (ipAddr.getPrefixLength() - 1));
 			} while (ipAddr.getPrefixLength() > 0);
 			return false;
+		} finally {
+			trustedIPRead.unlock();
+		}
+	}
+
+	private void addDefaultTrustedIPs() {
+		trustedIPWrite.lock();
+		try {
+			trustedIPs.add(IP.getIP("127.0.0.1"));
+			trustedIPs.add(IP.getIP("10.0.0.0/8"));
+			trustedIPs.add(IP.getIP("172.16.0.0/12"));
+			trustedIPs.add(IP.getIP("192.168.0.0/16"));
+		} finally {
+			trustedIPWrite.unlock();
+		}
+	}
+
+	public List<IP> getTrustedIPs() {
+		trustedIPRead.lock();
+		try {
+			return new ArrayList<>(trustedIPs);
 		} finally {
 			trustedIPRead.unlock();
 		}
