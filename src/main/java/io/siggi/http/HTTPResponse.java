@@ -182,6 +182,7 @@ public class HTTPResponse extends OutputStream {
 				sendFile = false;
 			}
 		}
+		setHeader("Accept-Ranges", "bytes");
 		if (eTag != null) {
 			setHeader("ETag", "\"" + eTag + "\"");
 		}
