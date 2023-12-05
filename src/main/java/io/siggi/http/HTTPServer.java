@@ -330,7 +330,7 @@ public final class HTTPServer {
 		mimeTypes.put("js", "text/javascript; charset=utf-8");
 		mimeTypes.put("json", "application/json; charset=utf-8");
 
-		mimeTypes.put("mp3", "audio/mpeg3");
+		mimeTypes.put("mp3", "audio/mpeg");
 		mimeTypes.put("aif", "audio/x-aiff");
 		mimeTypes.put("aiff", "audio/x-aiff");
 		mimeTypes.put("aifc", "audio/x-aifc");
