@@ -61,11 +61,14 @@ public final class HTTPServer {
 		return snapshot;
 	}
 
-	HTTPServer(Sessions sessions, File tmpDir) {
+	HTTPServer(Sessions sessions, String sessionCookieName, File tmpDir) {
 		this.port = -1;
 		startedProcessing = true;
 		if (sessions != null) {
 			this.sessions = sessions;
+		}
+		if (sessionCookieName != null) {
+			this.sessionCookieName = sessionCookieName;
 		}
 		this.tmpDir = tmpDir;
 		addDefaultTrustedIPs();
@@ -468,8 +471,10 @@ public final class HTTPServer {
 		this.sessions = sessions;
 	}
 
-	String getSessionCookieName() {
-		return "SessID";
+	private String sessionCookieName = "SessID";
+
+	public String getSessionCookieName() {
+		return sessionCookieName;
 	}
 
 	private final Map<Integer, HTTPResponder> defaultResponders = new HashMap<>();

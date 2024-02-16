@@ -6,6 +6,7 @@ import java.io.File;
 public final class HTTPServerBuilder {
 
 	private Sessions sessions;
+	private String sessionCookieName;
 	private File tmpDir;
 
 	public HTTPServerBuilder() {
@@ -17,12 +18,17 @@ public final class HTTPServerBuilder {
 		return this;
 	}
 
+	public HTTPServerBuilder setSessionCookieName(String sessionCookieName) {
+		this.sessionCookieName = sessionCookieName;
+		return this;
+	}
+
 	public HTTPServerBuilder setTmpDir(File tmpDir) {
 		this.tmpDir = tmpDir;
 		return this;
 	}
 
 	public HTTPServer build() {
-		return new HTTPServer(sessions, tmpDir);
+		return new HTTPServer(sessions, sessionCookieName, tmpDir);
 	}
 }
