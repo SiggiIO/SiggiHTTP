@@ -99,9 +99,12 @@ public class ZipFileResponder implements HTTPResponder {
 		}
 		String sha1 = properties.getProperty("sha1." + requestedPath);
 		ZipArchiveEntry brotliEntry = zipArchive.getEntry(requestedPath + ".br");
+		ZipArchiveEntry gzipEntry = zipArchive.getEntry(requestedPath + ".gz");
 		ZipArchiveEntry uncompressedEntry = zipArchive.getEntry(requestedPath);
 		if (allowBrotli && brotliEntry != null && !brotliEntry.isDirectory()) {
 			respond(request, contentType, zipArchive, brotliEntry, false, "br", maxAge, sha1);
+		} else if (allowGzip && gzipEntry != null && !gzipEntry.isDirectory()) {
+			respond(request, contentType, zipArchive, gzipEntry, false, "gzip", maxAge, sha1);
 		} else if (uncompressedEntry != null && !uncompressedEntry.isDirectory()) {
 			if (allowGzip && uncompressedEntry.getCompressionMethod() == 8) {
 				respond(request, contentType, zipArchive, uncompressedEntry, true, "gzip", maxAge, sha1);
