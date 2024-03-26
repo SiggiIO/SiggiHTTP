@@ -26,16 +26,23 @@ public class HTTPResponderRegistration {
 	/**
 	 * Specifies whether paths other than this registration's <code>path</code>
 	 * that begin with this registration's <code>path</code> will match.
+	 *
+	 * @deprecated This field will be removed in a future version.
 	 */
+	@Deprecated
 	public final boolean includeSubpath;
 	/**
 	 * Specifies whether this registration is case sensitive.
+	 *
+	 * @deprecated This field will be removed in a future version.
 	 */
+	@Deprecated
 	public final boolean caseSensitive;
 	/**
 	 * An <code>HTTPResponder</code> that will forward the client to the
 	 * <code>HTTPResponder</code> linked to this registration.
 	 */
+	@Deprecated
 	public final HTTPResponder forwardHere = new HTTPResponder() {
 		@Override
 		public void respond(HTTPRequest request) throws IOException {
