@@ -43,6 +43,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.Executor;
 import javax.net.ssl.SSLSocket;
 
 final class HTTPHandler {
@@ -223,7 +224,7 @@ final class HTTPHandler {
 	}
 
 	@Deprecated
-	HTTPHandler(HTTPServer server, Socket socket, ServerSocket sourceSocket) throws IOException {
+	HTTPHandler(HTTPServer server, Socket socket, ServerSocket sourceSocket, Executor executor) throws IOException {
 		this.server = server;
 		this.sock = socket;
 		this.sourceSocket = sourceSocket;
@@ -232,9 +233,10 @@ final class HTTPHandler {
 		out = socket.getOutputStream();
 		realInetAddress = inetAddress = socket.getInetAddress();
 		ip = inetAddress.getHostAddress();
+		this.executor = executor;
 	}
 
-	HTTPHandler(HTTPServer server, Socket socket, InputStream preRead) throws IOException {
+	HTTPHandler(HTTPServer server, Socket socket, InputStream preRead, Executor executor) throws IOException {
 		this.server = server;
 		this.sock = socket;
 		this.sourceSocket = null;
@@ -243,16 +245,22 @@ final class HTTPHandler {
 		out = socket.getOutputStream();
 		realInetAddress = inetAddress = socket.getInetAddress();
 		ip = inetAddress.getHostAddress();
+		this.executor = executor;
 	}
 
 	private boolean started = false;
+	private final Executor executor;
 
 	void start() {
 		if (started) {
 			return;
 		}
 		started = true;
-		new Thread(this::run, nextClientHandler()).start();
+		if (executor == null) {
+			new Thread(this::run, nextClientHandler()).start();
+		} else {
+			executor.execute(this::run);
+		}
 	}
 
 	private static int clientHandlerID = 0;

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class HTTPServer {
@@ -61,7 +62,7 @@ public final class HTTPServer {
 		return snapshot;
 	}
 
-	HTTPServer(Sessions sessions, String sessionCookieName, File tmpDir) {
+	HTTPServer(Sessions sessions, String sessionCookieName, File tmpDir, Executor executor) {
 		this.port = -1;
 		startedProcessing = true;
 		if (sessions != null) {
@@ -71,6 +72,7 @@ public final class HTTPServer {
 			this.sessionCookieName = sessionCookieName;
 		}
 		this.tmpDir = tmpDir;
+		this.executor = executor;
 		addDefaultTrustedIPs();
 	}
 
@@ -98,7 +100,7 @@ public final class HTTPServer {
 		if (!startedProcessing) {
 			startedProcessing = true;
 		}
-		new HTTPHandler(this, socket, preRead).start();
+		new HTTPHandler(this, socket, preRead, executor).start();
 	}
 
 	/**
@@ -112,6 +114,7 @@ public final class HTTPServer {
 		this.port = port;
 		serverSocket = new ServerSocket(port);
 		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
+		this.executor = null;
 		addDefaultTrustedIPs();
 	}
 
@@ -128,6 +131,7 @@ public final class HTTPServer {
 		this.port = port;
 		serverSocket = new ServerSocket(port, backlog);
 		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
+		this.executor = null;
 		addDefaultTrustedIPs();
 	}
 
@@ -145,6 +149,7 @@ public final class HTTPServer {
 		this.port = port;
 		serverSocket = new ServerSocket(port, backlog, bindAddr);
 		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
+		this.executor = null;
 		addDefaultTrustedIPs();
 	}
 
@@ -166,6 +171,7 @@ public final class HTTPServer {
 		this.port = p;
 		this.serverSocket = serverSocket;
 		this.tmpDir = new File(System.getProperty("java.io.tmpdir"));
+		this.executor = null;
 		addDefaultTrustedIPs();
 	}
 
@@ -183,7 +189,7 @@ public final class HTTPServer {
 			new Thread(() -> {
 				while (!killed) {
 					try {
-						new HTTPHandler(HTTPServer.this, serverSocket.accept(), serverSocket).start();
+						new HTTPHandler(HTTPServer.this, serverSocket.accept(), serverSocket, executor).start();
 					} catch (IOException ioe) {
 					}
 				}
@@ -209,7 +215,7 @@ public final class HTTPServer {
 		new Thread(() -> {
 			while (!killed) {
 				try {
-					new HTTPHandler(HTTPServer.this, extraSocket.accept(), extraSocket).start();
+					new HTTPHandler(HTTPServer.this, extraSocket.accept(), extraSocket, executor).start();
 				} catch (IOException ioe) {
 				}
 			}
@@ -449,6 +455,7 @@ public final class HTTPServer {
 	private Sessions sessions = Sessions.create(3600000L);
 
 	private final File tmpDir;
+	private final Executor executor;
 
 	/**
 	 * Get the Sessions object for this HTTPServer.
