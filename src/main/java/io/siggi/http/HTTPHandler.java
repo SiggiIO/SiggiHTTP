@@ -55,11 +55,14 @@ final class HTTPHandler {
 			if (noAutoClose && cannotKeepAlive) {
 				return;
 			}
-			if (wrote) {
-				finishBody();
-			}
 		}
-		if (!wrote) { // field 'wrote' gets set to false just before the server code calls processHTTP, and then gets set to true after anything gets sent to the client.
+		handlePostRequest(request, responder);
+	}
+
+	private void handlePostRequest(HTTPRequest request, HTTPResponder responder) throws Exception {
+		if (wrote) {
+			finishBody();
+		} else {
 			if (responseHeader.equalsIgnoreCase("302 Found")) {
 				String key = headerName("Location");
 				ArrayList list = (ArrayList) headers.get(key);
@@ -114,7 +117,6 @@ final class HTTPHandler {
 					contentOutStream.write(pageBytes);
 				}
 			}
-			return;
 		}
 	}
 
@@ -140,14 +142,7 @@ final class HTTPHandler {
 		} else if (writtenBodyLength < outputContentLength) {
 			// website code didn't write the whole body
 			// just pad it with zeroes
-			long amountToWrite = outputContentLength - writtenBodyLength;
-			int bufferSize = (int) Math.min(16384L, amountToWrite);
-			byte[] b = new byte[bufferSize];
-			while (amountToWrite > 0L) {
-				int wr = (int) Math.min(amountToWrite, (long) bufferSize);
-				contentOutStream.write(b, 0, wr);
-				amountToWrite -= wr;
-			}
+			mustEndConnection = true;
 			if (contentOutStream instanceof BufferedOutputStream) {
 				contentOutStream.flush();
 			}
@@ -323,7 +318,7 @@ final class HTTPHandler {
 	private void run() {
 		try {
 			theLoop:
-			while (keepAlive) {
+			while (keepAlive && !mustEndConnection) {
 				try {
 					wrote = false;
 					writtenBodyLength = 0L;
@@ -972,6 +967,7 @@ final class HTTPHandler {
 	private InetAddress realInetAddress = null;
 	private InetAddress inetAddress = null;
 	String ip = null;
+	private boolean mustEndConnection = false;
 	private boolean noAutoClose = false;
 	private boolean keepAlive = true;
 	private boolean cannotKeepAlive = false;
