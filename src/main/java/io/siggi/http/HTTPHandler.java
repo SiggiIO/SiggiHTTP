@@ -251,11 +251,7 @@ final class HTTPHandler {
 			return;
 		}
 		started = true;
-		if (executor == null) {
-			new Thread(this::run, nextClientHandler()).start();
-		} else {
-			executor.execute(this::run);
-		}
+		startHandlingNewRequest();
 	}
 
 	private static int clientHandlerID = 0;
@@ -320,6 +316,7 @@ final class HTTPHandler {
 			theLoop:
 			while (keepAlive && !mustEndConnection) {
 				try {
+					cleanupIsExplicit = false;
 					wrote = false;
 					writtenBodyLength = 0L;
 					outputContentLength = -1L;
@@ -346,11 +343,10 @@ final class HTTPHandler {
 					if (s == -1) {
 						s = request.length();
 					}
-					String method = request.substring(0, s);
-					if (isMethodAllowed(method)) {
-						usingHeadMethod = request.toUpperCase().startsWith("HEAD ");
-						processRequest(request);
-					}
+					String method = request.substring(0, s).toUpperCase();
+					usingHeadMethod = method.equals("HEAD");
+					cleanupTasks.clear();
+					processRequest(request);
 				} catch (SocketTimeoutException | HTTPTimedOutException ste) {
 					// Timed out
 					keepAlive = false;
@@ -375,16 +371,52 @@ final class HTTPHandler {
 					}
 					cannotKeepAlive = true;
 					keepAlive = false;
+				} finally {
+					if (!cleanupIsExplicit)
+						postRequestCleanup();
+				}
+				if (cleanupIsExplicit) {
+					break;
 				}
 			}
 		} finally {
-			if (!noAutoClose) {
+			if (!noAutoClose && !cleanupIsExplicit) {
 				try {
 					sock.close();
 				} catch (Exception e) {
 				}
 			}
 		}
+	}
+
+	private void startHandlingNewRequest() {
+		if (executor == null) {
+			new Thread(this::run, nextClientHandler()).start();
+		} else {
+			executor.execute(this::run);
+		}
+	}
+
+	void closeRequest() {
+		cleanupIsExplicit = true;
+		postRequestCleanup();
+		if (!keepAlive || mustEndConnection) {
+			if (!noAutoClose) {
+				try {
+					sock.close();
+				} catch (Exception e) {
+				}
+			}
+		} else {
+			startHandlingNewRequest();
+		}
+	}
+
+	private void postRequestCleanup() {
+		for (Runnable runnable : cleanupTasks) {
+			runnable.run();
+		}
+		cleanupTasks.clear();
 	}
 
 	private static String deURLEncode(String encoded) {
@@ -716,37 +748,43 @@ final class HTTPHandler {
 					}
 				}
 			}
-			HTTPRequest req = null;
-			try {
-				req = new HTTPRequest(this, method, requestURI, fullRequestURI, get, post, cookies, headers, uploadedFiles, host, referer, userAgent, contentStream);
-				processHTTP(req);
-				if (contentStream != null) {
-					contentStream.setEofSequence(null);
-					Util.readFullyToBlackHole(contentStream);
-				}
-			} finally {
-				if (req != null) {
-					req.saveSession();
-				}
+
+			HTTPRequest req = new HTTPRequest(this, method, requestURI, fullRequestURI, get, post, cookies, headers, uploadedFiles, host, referer, userAgent, contentStream);
+			cleanupTasks.add(req::saveSession);
+			cleanupTasks.add(() -> {
 				if (contentOutStream != null) {
 					try {
 						contentOutStream.flush();
-					} catch (Exception e) {
+					} catch (Exception ignored) {
 					}
 					contentOutStream = null;
 				}
 				try {
 					out.flush();
-				} catch (Exception e) {
+				} catch (Exception ignored) {
 				}
+			});
+			if (contentStream != null) {
+				final EOFInputStream finalContentStream = contentStream;
+				cleanupTasks.add(() -> {
+					finalContentStream.setEofSequence(null);
+					int read = -1;
+					try {
+						read = finalContentStream.read();
+					} catch (Exception e) {
+					}
+					if (read != -1) {
+						mustEndConnection = true;
+					}
+				});
 			}
+			processHTTP(req);
 		} finally {
-			purgeTmpFiles();
-			if (keepAlive && contentStream != null) {
-				Util.readFullyToBlackHole(contentStream);
-			}
 		}
 	}
+
+	private final List<Runnable> cleanupTasks = new LinkedList<>();
+	private boolean cleanupIsExplicit = false;
 
 	private byte[] toBytes(String str) {
 		char[] ch = str.toCharArray();
@@ -980,18 +1018,6 @@ final class HTTPHandler {
 	private String responseHeader = null;
 	private final Map<String, List<String>> headers = new HashMap<>();
 	boolean chunked = true;
-
-	private boolean methodHasStream(String method) {
-		return !method.equalsIgnoreCase("GET")
-				&& !method.equalsIgnoreCase("HEAD")
-				&& !method.equalsIgnoreCase("DELETE");
-	}
-
-	private boolean isMethodAllowed(String method) {
-		method = method.toUpperCase();
-		return method.equals("GET") || method.equals("POST") || method.equals("HEAD")
-				|| method.equals("PUT") || method.equals("DELETE");
-	}
 
 	Socket upgradeSocket() {
 		cannotKeepAlive = true;
