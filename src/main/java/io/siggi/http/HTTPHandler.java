@@ -63,36 +63,17 @@ final class HTTPHandler {
 		if (wrote) {
 			finishBody();
 		} else {
-			if (responseHeader.equalsIgnoreCase("302 Found")) {
-				String key = headerName("Location");
-				ArrayList list = (ArrayList) headers.get(key);
-				if (list != null) {
-					if (list.size() == 1) {
-						String location = (String) list.get(0);
-						String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>302 Found</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>302 Found</h1><br>\nThe resource you requested has moved to a new location.  <a href=\"" + location + "\">Click here to go to the new location.</a><br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
-						byte[] pageBytes = getBytes(page);
-						setHeader("Content-Length", Integer.toString(pageBytes.length));
-						setHeader("Content-Type", "text/html; charset=utf-8");
-						writeHeaders();
-						contentOutStream.write(pageBytes);
-						return;
-					}
-				}
-			}
-			if (responseHeader.equalsIgnoreCase("303 See Other")) {
-				String key = headerName("Location");
-				ArrayList list = (ArrayList) headers.get(key);
-				if (list != null) {
-					if (list.size() == 1) {
-						String location = (String) list.get(0);
-						String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>303 See Other</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>303 See Other</h1><br>\nYou are being referred to a new location.  <a href=\"" + location + "\">Click here to go to the new location.</a><br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
-						byte[] pageBytes = getBytes(page);
-						setHeader("Content-Length", Integer.toString(pageBytes.length));
-						setHeader("Content-Type", "text/html; charset=utf-8");
-						writeHeaders();
-						contentOutStream.write(pageBytes);
-						return;
-					}
+			if (isRedirectCode(responseCode)) {
+				List<String> list = headers.get(headerName("Location"));
+				if (list != null && list.size() == 1) {
+					String location = list.get(0);
+					String page = "<!DOCTYPE html>\n<html>\n<head>\n<title>" + responseHeader + "</title>\n" + DefaultResponder.STYLE + "</head>\n<body>\n<h1>" + responseHeader + "</h1><br>\nThe resource you requested has moved to a new location.  <a href=\"" + HTMLUtils.htmlentities(location) + "\">Click here to go to the new location.</a><br>\n<hr>\n" + request.getServerSignature() + "<br>\n</body>\n</html>";
+					byte[] pageBytes = getBytes(page);
+					setHeader("Content-Length", Integer.toString(pageBytes.length));
+					setHeader("Content-Type", "text/html; charset=utf-8");
+					writeHeaders();
+					contentOutStream.write(pageBytes);
+					return;
 				}
 			}
 			setHeader("404 Not Found");
@@ -808,6 +789,7 @@ final class HTTPHandler {
 		if (wrote) {
 			throw new RuntimeException("Headers already sent, and cannot be modified!");
 		}
+		responseCode = 200;
 		responseHeader = "200 OK";
 		headers.clear();
 		String currentDate = getSimpleDateFormat().format(new Date(System.currentTimeMillis()));
@@ -824,8 +806,8 @@ final class HTTPHandler {
 			throw new IllegalArgumentException("Response must be a number followed by the name of that response type.");
 		}
 		try {
-			Integer.parseInt(response.split(" ")[0]);
-		} catch (Exception e) {
+			responseCode = Integer.parseInt(response.split(" ")[0]);
+		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Response must be a number followed by the name of that response type.");
 		}
 		responseHeader = response;
@@ -1015,9 +997,23 @@ final class HTTPHandler {
 	private String userAgent = null;
 	boolean usingHeadMethod = false;
 	private Map<String, String> cacheMap = null;
+	private int responseCode = 0;
 	private String responseHeader = null;
 	private final Map<String, List<String>> headers = new HashMap<>();
 	boolean chunked = true;
+
+	private boolean isRedirectCode(int code) {//301, 302, 303, 307, 308
+		switch (code) {
+			case 301: // Moved Permanently
+			case 302: // Found
+			case 303: // See Other
+			case 307: // Temporary Redirect
+			case 308: // Permanent Redirect
+				return true;
+			default:
+				return false;
+		}
+	}
 
 	Socket upgradeSocket() {
 		cannotKeepAlive = true;
