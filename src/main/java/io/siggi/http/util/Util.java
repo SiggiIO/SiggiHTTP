@@ -394,7 +394,7 @@ public class Util {
 		SecureRandom sr = new SecureRandom();
 		char[] result = new char[length];
 		for (int i = 0; i < result.length; i++) {
-			result[i] = randomDataCharset[sr.nextInt(length)];
+			result[i] = randomDataCharset[sr.nextInt(randomDataCharset.length)];
 		}
 		return new String(result);
 	}
