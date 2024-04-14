@@ -24,6 +24,15 @@ public class HTTPResponse extends OutputStream {
 
 	private final HTTPRequest request;
 	private boolean chunked = true;
+	private boolean closed = false;
+
+	private void throwIOIfClosed() throws IOException {
+		if (closed) throw new IOException("Already closed");
+	}
+
+	private void throwIllegalIfClosed() {
+		if (closed) throw new IllegalStateException("Already closed");
+	}
 
 	/**
 	 * Sets the content length and disables chunked transfer encoding. If you
@@ -33,6 +42,7 @@ public class HTTPResponse extends OutputStream {
 	 * @param contentLength the content length
 	 */
 	public void contentLength(long contentLength) {
+		throwIllegalIfClosed();
 		if (request.handler.wrote) {
 			throw new IllegalStateException("Headers already sent, and cannot be modified!");
 		}
@@ -57,6 +67,7 @@ public class HTTPResponse extends OutputStream {
 	 * @param contentLength
 	 */
 	public void contentLength(int contentLength) {
+		throwIllegalIfClosed();
 		if (request.handler.wrote) {
 			throw new IllegalStateException("Headers already sent, and cannot be modified!");
 		}
@@ -74,6 +85,7 @@ public class HTTPResponse extends OutputStream {
 	}
 
 	public void setContentType(String contentType) {
+		throwIllegalIfClosed();
 		if (contentType.equals("text/html")) {
 			contentType = "text/html; charset=utf-8";
 		}
@@ -95,6 +107,7 @@ public class HTTPResponse extends OutputStream {
 	}
 
 	public void returnFile(File file, String contentType) throws IOException {
+		throwIOIfClosed();
 		if (!file.exists()) {
 			return;
 		}
@@ -230,6 +243,7 @@ public class HTTPResponse extends OutputStream {
 	}
 
 	public void handleRequestWithFile(File f) throws IOException {
+		throwIOIfClosed();
 		switch (request.method.toUpperCase()) {
 			case "GET":
 			case "HEAD": {
@@ -292,6 +306,7 @@ public class HTTPResponse extends OutputStream {
 	 * @throws IOException if something goes wrong
 	 */
 	public void disableBuffer() throws IOException {
+		throwIOIfClosed();
 		request.handler.disableBuffer();
 	}
 
@@ -300,6 +315,7 @@ public class HTTPResponse extends OutputStream {
 	 * permanently.
 	 */
 	public void movedPermanently(String url) throws IOException {
+		throwIOIfClosed();
 		if (request.handler.wrote) {
 			throw new IllegalStateException("Headers already sent, and cannot be modified!");
 		}
@@ -313,6 +329,7 @@ public class HTTPResponse extends OutputStream {
 	 * Redirects the client to another location to complete the request.
 	 */
 	public void redirect(String url) throws IOException {
+		throwIOIfClosed();
 		if (request.handler.wrote) {
 			throw new IllegalStateException("Headers already sent, and cannot be modified!");
 		}
@@ -327,6 +344,7 @@ public class HTTPResponse extends OutputStream {
 	 * specified location.
 	 */
 	public void completedRedirect(String url) throws IOException {
+		throwIOIfClosed();
 		if (request.handler.wrote) {
 			throw new IllegalStateException("Headers already sent, and cannot be modified!");
 		}
@@ -347,6 +365,7 @@ public class HTTPResponse extends OutputStream {
 	 */
 	@Deprecated
 	public void keepAlive(boolean keepAlive) {
+		throwIllegalIfClosed();
 		if (request.handler.wrote) {
 			throw new IllegalStateException("Headers already sent, and cannot be modified!");
 		}
@@ -369,11 +388,21 @@ public class HTTPResponse extends OutputStream {
 	}
 
 	/**
-	 * This does nothing
+	 * Close the response. This must be called if {@link HTTPRequest#openResponse()} was called.
 	 */
 	@Override
 	public void close() throws IOException {
-		// Does nothing XD
+		if (closed) return;
+		markClosed();
+		request.handler.closeRequest();
+	}
+
+	void markClosed() {
+		closed = true;
+	}
+
+	boolean isClosed() {
+		return closed;
 	}
 
 	/**
@@ -381,6 +410,7 @@ public class HTTPResponse extends OutputStream {
 	 */
 	@Override
 	public void flush() throws IOException {
+		throwIOIfClosed();
 		if (request.handler.contentOutStream != null)
 			request.handler.contentOutStream.flush();
 	}
@@ -390,6 +420,7 @@ public class HTTPResponse extends OutputStream {
 	 */
 	@Override
 	public void write(byte[] b) throws IOException {
+		throwIOIfClosed();
 		write(b, 0, b.length);
 	}
 
@@ -399,6 +430,7 @@ public class HTTPResponse extends OutputStream {
 	 */
 	@Override
 	public void write(byte[] b, int off, int len) throws IOException {
+		throwIOIfClosed();
 		if (!request.handler.wrote) {
 			request.handler.writeHeaders();
 		}
@@ -414,6 +446,7 @@ public class HTTPResponse extends OutputStream {
 	 */
 	@Override
 	public void write(int b) throws IOException {
+		throwIOIfClosed();
 		if (!request.handler.wrote) {
 			request.handler.writeHeaders();
 		}
@@ -433,6 +466,7 @@ public class HTTPResponse extends OutputStream {
 	 * @throws IOException if something goes wrong
 	 */
 	public void sendHeaders() throws IOException {
+		throwIOIfClosed();
 		if (!request.handler.wrote) {
 			request.handler.writeHeaders();
 		}
@@ -457,6 +491,7 @@ public class HTTPResponse extends OutputStream {
 	 * HTTP/1.1 in front.
 	 */
 	public void setHeader(String responseHeader) {
+		throwIllegalIfClosed();
 		if (request.handler.wrote) {
 			throw new IllegalStateException("Headers already sent, and cannot be modified!");
 		}
@@ -475,6 +510,7 @@ public class HTTPResponse extends OutputStream {
 	 * same key, rather than removing all others with the same key.
 	 */
 	public void addHeader(String key, String value) {
+		throwIllegalIfClosed();
 		if (request.handler.wrote) {
 			throw new IllegalStateException("Headers already sent, and cannot be modified!");
 		}
@@ -491,6 +527,7 @@ public class HTTPResponse extends OutputStream {
 	 * header.
 	 */
 	public void setHeader(String key, String value) {
+		throwIllegalIfClosed();
 		if (request.handler.wrote) {
 			throw new IllegalStateException("Headers already sent, and cannot be modified!");
 		}
@@ -512,6 +549,7 @@ public class HTTPResponse extends OutputStream {
 	 * Removes all headers with the specified <code>key</code>.
 	 */
 	public void deleteHeader(String key) {
+		throwIllegalIfClosed();
 		if (request.handler.wrote) {
 			throw new IllegalStateException("Headers already sent, and cannot be modified!");
 		}
@@ -531,6 +569,7 @@ public class HTTPResponse extends OutputStream {
 	 * Tell the client not to cache this resource.
 	 */
 	public void doNotCache() {
+		throwIllegalIfClosed();
 		request.handler.doNotCache();
 	}
 
@@ -541,6 +580,7 @@ public class HTTPResponse extends OutputStream {
 	 * @param maxAge number of seconds
 	 */
 	public void cache(long maxAge) {
+		throwIllegalIfClosed();
 		request.handler.cache(maxAge);
 	}
 
@@ -570,6 +610,7 @@ public class HTTPResponse extends OutputStream {
 	}
 
 	public Socket upgradeConnection(String upgradeHeader) throws IOException {
+		throwIOIfClosed();
 		setHeader("101 Switching Protocols");
 		deleteHeader("Content-Type");
 		deleteHeader("Keep-Alive");

@@ -2,6 +2,7 @@ package io.siggi.http;
 
 import io.siggi.http.session.Session;
 import io.siggi.http.session.Sessions;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -290,5 +291,19 @@ public class HTTPRequest {
 		} catch (Exception e) {
 		}
 		return null;
+	}
+
+	/**
+	 * Open (or if already opened, returns the previously opened one) an HTTP response for this request. The first
+	 * call must be done on the Thread the request originated on.
+	 *
+	 * @return
+	 */
+	public HTTPResponse openResponse() throws IOException {
+		if (response.isClosed()) {
+			throw new IOException("Response already closed.");
+		}
+		handler.makeCleanupExplicit();
+		return response;
 	}
 }

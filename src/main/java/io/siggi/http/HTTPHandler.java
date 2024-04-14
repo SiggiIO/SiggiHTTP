@@ -298,6 +298,8 @@ final class HTTPHandler {
 			while (keepAlive && !mustEndConnection) {
 				try {
 					cleanupIsExplicit = false;
+					cleanedUpOnHandlerThread = false;
+					handlerThread = Thread.currentThread();
 					wrote = false;
 					writtenBodyLength = 0L;
 					outputContentLength = -1L;
@@ -356,7 +358,7 @@ final class HTTPHandler {
 					if (!cleanupIsExplicit)
 						postRequestCleanup();
 				}
-				if (cleanupIsExplicit) {
+				if (cleanupIsExplicit && !cleanedUpOnHandlerThread) {
 					break;
 				}
 			}
@@ -378,9 +380,17 @@ final class HTTPHandler {
 		}
 	}
 
+	void makeCleanupExplicit() {
+		cleanupIsExplicit = true;
+	}
+
 	void closeRequest() {
 		cleanupIsExplicit = true;
 		postRequestCleanup();
+		if (Thread.currentThread() == handlerThread) {
+			cleanedUpOnHandlerThread = true;
+			return;
+		}
 		if (!keepAlive || mustEndConnection) {
 			if (!noAutoClose) {
 				try {
@@ -440,6 +450,7 @@ final class HTTPHandler {
 
 	private void processRequest(String request) throws Exception {
 		EOFInputStream contentStream = null;
+		HTTPRequest req = null;
 		try {
 			String method = request.substring(0, request.indexOf(" "));
 			String requestURI;
@@ -730,7 +741,7 @@ final class HTTPHandler {
 				}
 			}
 
-			HTTPRequest req = new HTTPRequest(this, method, requestURI, fullRequestURI, get, post, cookies, headers, uploadedFiles, host, referer, userAgent, contentStream);
+			req = new HTTPRequest(this, method, requestURI, fullRequestURI, get, post, cookies, headers, uploadedFiles, host, referer, userAgent, contentStream);
 			cleanupTasks.add(req::saveSession);
 			cleanupTasks.add(() -> {
 				if (contentOutStream != null) {
@@ -761,11 +772,16 @@ final class HTTPHandler {
 			}
 			processHTTP(req);
 		} finally {
+			if (req != null && !cleanupIsExplicit) {
+				req.response.markClosed();
+			}
 		}
 	}
 
+	private Thread handlerThread = null;
 	private final List<Runnable> cleanupTasks = new LinkedList<>();
 	private boolean cleanupIsExplicit = false;
+	private boolean cleanedUpOnHandlerThread = false;
 
 	private byte[] toBytes(String str) {
 		char[] ch = str.toCharArray();
