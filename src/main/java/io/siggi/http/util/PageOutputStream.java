@@ -62,10 +62,10 @@ public class PageOutputStream extends OutputStream {
     public void close() throws IOException {
         if (closed) return;
         check();
-        closed = true;
         if (footerWriter != null) {
             footerWriter.writeTo(this);
         }
+        closed = true;
         if (closeInnerStreamOnClose) out.close();
     }
 
