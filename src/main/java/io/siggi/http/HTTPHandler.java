@@ -884,9 +884,7 @@ final class HTTPHandler {
 	}
 
 	void cache(long maxAge) {
-		SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
-		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
-		String expire = sdf.format(new Date(System.currentTimeMillis() + (maxAge * 1000L)));
+		String expire = getSimpleDateFormat().format(new Date(System.currentTimeMillis() + (maxAge * 1000L)));
 
 		deleteHeader("Pragma");
 		setHeader("Cache-Control", "public, max-age=" + maxAge);
@@ -932,8 +930,13 @@ final class HTTPHandler {
 		}
 	}
 
-	public SimpleDateFormat getSimpleDateFormat() {
-		return HTMLUtils.getSimpleDateFormat();
+	private SimpleDateFormat simpleDateFormat;
+
+	SimpleDateFormat getSimpleDateFormat() {
+		if (simpleDateFormat == null) {
+			simpleDateFormat = HTMLUtils.getSimpleDateFormat();
+		}
+		return simpleDateFormat;
 	}
 
 	String formatDate(long date) {

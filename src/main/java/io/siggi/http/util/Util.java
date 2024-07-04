@@ -11,7 +11,6 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -375,9 +374,7 @@ public class Util {
 	}
 
 	public static String formatDate(long date) {
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
-		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-		return simpleDateFormat.format(new Date(date));
+		return HTMLUtils.getSimpleDateFormat().format(new Date(date));
 	}
 
 	public static String getFileExtension(String file) {
