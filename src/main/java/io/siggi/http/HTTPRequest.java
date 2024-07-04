@@ -20,7 +20,7 @@ public class HTTPRequest {
 	final HTTPHandler handler;
 	/**
 	 * The object to send responses to. This object extends
-	 * <code>ObjectStream</code> so you can send data here.
+	 * <code>OutputStream</code> so you can send data here.
 	 */
 	public final HTTPResponse response;
 	/**
@@ -295,7 +295,12 @@ public class HTTPRequest {
 
 	/**
 	 * Open (or if already opened, returns the previously opened one) an HTTP response for this request. The first
-	 * call must be done on the Thread the request originated on.
+	 * call must be done on the Thread the request originated on. When a response is opened using this method instead
+	 * of accessing the {@link #response} field, the response will not be automatically closed, the response must be
+	 * explicitly closed when it is finished. This means you can return from the
+	 * {@link HTTPResponder#respond(HTTPRequest)} method before the request is complete and hand off the request to a
+	 * different thread. Take care to eventually close the response and not leave it dangling if your program ends up
+	 * in an error state.
 	 *
 	 * @return
 	 */
