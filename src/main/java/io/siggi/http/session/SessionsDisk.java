@@ -1,5 +1,7 @@
 package io.siggi.http.session;
 
+import io.siggi.http.util.Util;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,6 +9,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,6 +29,13 @@ final class SessionsDisk extends Sessions {
 	}
 
 	private final File directory;
+
+	private File getSessionFile(String sessionId) {
+		return new File(
+                directory,
+				Util.bytesToHex(Util.sha256().digest(sessionId.getBytes(StandardCharsets.UTF_8))) + ".txt"
+		);
+	}
 
 	private final Map<String, WeakReference<Session>> sessions = new HashMap<>();
 
@@ -57,7 +67,7 @@ final class SessionsDisk extends Sessions {
 			}
 			fileCheck:
 			{
-				File f = new File(directory, sessionId + ".txt");
+				File f = getSessionFile(sessionId);
 				if (!f.exists()) {
 					return false;
 				}
@@ -136,7 +146,7 @@ final class SessionsDisk extends Sessions {
 				}
 				fileCheck:
 				{
-					File f = new File(directory, sessionId + ".txt");
+					File f = getSessionFile(sessionId);
 					if (!f.exists()) {
 						break existCheck;
 					}
@@ -169,7 +179,7 @@ final class SessionsDisk extends Sessions {
 	void save(Session session) {
 		readLock.lock();
 		try {
-			File sessionFile = new File(directory, session.sessionId + ".txt");
+			File sessionFile = getSessionFile(session.sessionId);
 			try (BufferedWriter writer = new BufferedWriter(new FileWriter(sessionFile))) {
 				session.save(writer);
 			} catch (IOException ioe) {
@@ -188,7 +198,7 @@ final class SessionsDisk extends Sessions {
 	void delete(Session session) {
 		writeLock.lock();
 		try {
-			File sessionFile = new File(directory, session.sessionId + ".txt");
+			File sessionFile = getSessionFile(session.sessionId);
 			WeakReference<Session> ref = sessions.get(session.sessionId);
 			if (ref != null) {
 				Session s = ref.get();
