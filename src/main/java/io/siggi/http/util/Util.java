@@ -480,4 +480,31 @@ public class Util {
 			throw new RuntimeException(e);
 		}
 	}
+
+	private static final char[] hexCharset = "0123456789abcdef".toCharArray();
+
+	public static String bytesToHex(byte[] data) {
+		char[] characters = new char[data.length * 2];
+		for (int i = 0; i < data.length; i++) {
+			int pos = i * 2;
+			characters[pos] = hexCharset[(data[i] >> 4) & 0xf];
+			characters[pos + 1] = hexCharset[data[i] & 0xf];
+		}
+		return new String(characters);
+	}
+
+	public static byte[] hexToBytes(String data) {
+		try {
+			int length = data.length();
+			if (length % 2 != 0) throw new IllegalArgumentException("Invalid hex");
+			byte[] output = new byte[length / 2];
+			for (int i = 0; i < output.length; i++) {
+				int pos = i * 2;
+				output[i] = (byte) Integer.parseInt(data.substring(pos, pos + 2), 16);
+			}
+			return output;
+		} catch (NumberFormatException nfe) {
+			throw new IllegalArgumentException("Invalid hex");
+		}
+	}
 }
