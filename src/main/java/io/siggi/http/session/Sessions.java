@@ -3,6 +3,7 @@ package io.siggi.http.session;
 import java.io.CharArrayReader;
 import java.io.File;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.Map;
 
 public abstract class Sessions {
@@ -163,10 +164,11 @@ public abstract class Sessions {
 	}
 
 	public static String randomSessionId() {
+		SecureRandom random = new SecureRandom();
 		StringBuilder sb = new StringBuilder();
 		char[] c = "0123456789abcdef".toCharArray();
 		for (int i = 0; i < 64; i++) {
-			sb.append(c[(int) Math.floor(Math.random() * c.length)]);
+			sb.append(c[random.nextInt(0, c.length)]);
 		}
 		return sb.toString();
 	}
