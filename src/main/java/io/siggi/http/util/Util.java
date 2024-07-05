@@ -10,6 +10,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -461,5 +463,21 @@ public class Util {
 			throw new RuntimeException(e);
 		}
 		return map;
+	}
+
+	public static MessageDigest sha1() {
+		return digest("SHA1");
+	}
+
+	public static MessageDigest sha256() {
+		return digest("SHA-256");
+	}
+
+	private static MessageDigest digest(String type) {
+		try {
+			return MessageDigest.getInstance(type);
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
