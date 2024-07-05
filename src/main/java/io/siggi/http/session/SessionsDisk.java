@@ -53,6 +53,7 @@ final class SessionsDisk extends Sessions {
 				if (hasExpired(session.lastUse)) {
 					return false;
 				}
+				return true;
 			}
 			fileCheck:
 			{
@@ -108,6 +109,7 @@ final class SessionsDisk extends Sessions {
 			if (hasExpired(session.lastUse)) {
 				break readLock;
 			}
+			return session;
 		} finally {
 			readLock.unlock();
 		}
@@ -130,6 +132,7 @@ final class SessionsDisk extends Sessions {
 					if (hasExpired(session.lastUse)) {
 						break existCheck;
 					}
+					return session;
 				}
 				fileCheck:
 				{
