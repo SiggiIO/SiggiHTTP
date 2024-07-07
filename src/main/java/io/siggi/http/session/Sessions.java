@@ -168,7 +168,7 @@ public abstract class Sessions {
 		StringBuilder sb = new StringBuilder();
 		char[] c = "0123456789abcdef".toCharArray();
 		for (int i = 0; i < 64; i++) {
-			sb.append(c[random.nextInt(0, c.length)]);
+			sb.append(c[random.nextInt(c.length)]);
 		}
 		return sb.toString();
 	}
