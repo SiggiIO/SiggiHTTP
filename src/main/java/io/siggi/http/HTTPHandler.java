@@ -173,9 +173,9 @@ final class HTTPHandler {
 	private final List<File> purgeable = new LinkedList<>();
 
 	private File createTmpFile() {
-		File file = null;
+		File file;
 		do {
-			file = new File(server.getTmpDir(), genFileName() + ".dat");
+			file = new File(server.getTmpDir(), Util.randomChars(20) + ".dat");
 		} while (file.exists());
 		purgeable.add(file);
 		return file;
@@ -189,14 +189,6 @@ final class HTTPHandler {
 			}
 			it.remove();
 		}
-	}
-
-	private static String genFileName() {
-		byte[] fname = new byte[16];
-		for (int i = 0; i < fname.length; i++) {
-			fname[i] = Integer.toString((int) Math.floor(Math.random() * 16), 16).getBytes()[0];
-		}
-		return new String(fname);
 	}
 
 	@Deprecated
@@ -404,6 +396,7 @@ final class HTTPHandler {
 	}
 
 	private void postRequestCleanup() {
+		purgeTmpFiles();
 		for (Runnable runnable : cleanupTasks) {
 			runnable.run();
 		}
