@@ -801,7 +801,7 @@ final class HTTPHandler {
 		responseCode = 200;
 		responseHeader = "200 OK";
 		headers.clear();
-		String currentDate = getSimpleDateFormat().format(new Date(System.currentTimeMillis()));
+		String currentDate = formatDate(System.currentTimeMillis());
 		setHeader("Content-Type", "text/html; charset=utf-8");
 		setHeader("Date", currentDate);
 		setHeader("Server", server.serverName);
@@ -877,7 +877,7 @@ final class HTTPHandler {
 	}
 
 	void cache(long maxAge) {
-		String expire = getSimpleDateFormat().format(new Date(System.currentTimeMillis() + (maxAge * 1000L)));
+		String expire = formatDate(System.currentTimeMillis() + (maxAge * 1000L));
 
 		deleteHeader("Pragma");
 		setHeader("Cache-Control", "public, max-age=" + maxAge);
