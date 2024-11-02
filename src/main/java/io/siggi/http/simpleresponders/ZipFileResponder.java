@@ -47,8 +47,11 @@ public class ZipFileResponder implements HTTPResponder {
 		if (!request.url.startsWith(mountPath)) {
 			return;
 		}
-		String requestedPath = request.url.substring(mountPath.length());
-		if (requestedPath.equals("info.txt")) {
+		respond(request, request.url.substring(mountPath.length()), true);
+	}
+
+	public void respond(HTTPRequest request, String path, boolean allowCaching) throws Exception {
+		if (path.equals("info.txt")) {
 			return;
 		}
 		String acceptedEncodingsString = request.getHeader("Accept-Encoding");
@@ -74,33 +77,34 @@ public class ZipFileResponder implements HTTPResponder {
 		Properties properties = getProperties();
 		long maxAge = 86400L;
 		try {
-			maxAge = Long.parseLong(getOption(requestedPath, properties, "max-age"));
+			maxAge = Long.parseLong(getOption(path, properties, "max-age"));
 		} catch (Exception e) {
 		}
+		if (!allowCaching) maxAge = 0L;
 		boolean autoRedirect = true;
 		try {
-			String autoRedirectString = getOption(requestedPath, properties, "auto-redirect");
+			String autoRedirectString = getOption(path, properties, "auto-redirect");
 			if (autoRedirectString != null && (autoRedirectString.equals("0") || autoRedirectString.equals("no") || autoRedirectString.equals("false"))) {
 				autoRedirect = false;
 			}
 		} catch (Exception e) {
 		}
-		String rename = properties.getProperty("rename." + requestedPath);
+		String rename = properties.getProperty("rename." + path);
 		if (rename != null) {
 			if (autoRedirect) {
 				request.response.redirect(mountPath + rename);
 			}
 			return;
 		}
-		String extension = getFileExtension(requestedPath);
+		String extension = getFileExtension(path);
 		String contentType = properties.getProperty("mime." + extension);
 		if (contentType == null) {
 			contentType = request.getMimeType(extension);
 		}
-		String sha1 = properties.getProperty("sha1." + requestedPath);
-		ZipArchiveEntry brotliEntry = zipArchive.getEntry(requestedPath + ".br");
-		ZipArchiveEntry gzipEntry = zipArchive.getEntry(requestedPath + ".gz");
-		ZipArchiveEntry uncompressedEntry = zipArchive.getEntry(requestedPath);
+		String sha1 = properties.getProperty("sha1." + path);
+		ZipArchiveEntry brotliEntry = zipArchive.getEntry(path + ".br");
+		ZipArchiveEntry gzipEntry = zipArchive.getEntry(path + ".gz");
+		ZipArchiveEntry uncompressedEntry = zipArchive.getEntry(path);
 		if (allowBrotli && brotliEntry != null && !brotliEntry.isDirectory()) {
 			respond(request, contentType, zipArchive, brotliEntry, false, "br", maxAge, sha1);
 		} else if (allowGzip && gzipEntry != null && !gzipEntry.isDirectory()) {
