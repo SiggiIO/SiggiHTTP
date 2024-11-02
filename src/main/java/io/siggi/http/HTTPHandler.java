@@ -744,6 +744,9 @@ final class HTTPHandler {
 					}
 					contentOutStream = null;
 				}
+				if (chunkOutputStream != null) {
+					chunkOutputStream = null;
+				}
 				try {
 					out.flush();
 				} catch (Exception ignored) {
