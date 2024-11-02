@@ -321,6 +321,7 @@ public class HTTPResponse extends OutputStream {
 		}
 		setHeader("301 Moved Permanently");
 		setHeader("Location", url);
+		contentLength(0);
 		sendHeaders();
 		return;
 	}
@@ -335,6 +336,7 @@ public class HTTPResponse extends OutputStream {
 		}
 		setHeader("302 Found");
 		setHeader("Location", url);
+		contentLength(0);
 		sendHeaders();
 		return;
 	}
@@ -350,6 +352,7 @@ public class HTTPResponse extends OutputStream {
 		}
 		setHeader("303 See Other");
 		setHeader("Location", url);
+		contentLength(0);
 		sendHeaders();
 		return;
 	}
